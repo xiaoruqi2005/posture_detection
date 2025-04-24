@@ -1,0 +1,43 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.8.34330.188
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PostureChecker", "PostureChecker\PostureChecker.csproj", "{894CB0A3-4696-461A-A09A-853BAAE07C92}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Camera", "Camera\Camera.csproj", "{6871F608-6A2E-4161-B124-B45A56E23980}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Pose", "Pose\Pose.csproj", "{413F577B-A084-4201-A11F-4782A9E8D574}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Common", "Common\Common.csproj", "{14037E95-2ED3-48AF-8442-0D4365F9212C}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{894CB0A3-4696-461A-A09A-853BAAE07C92}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{894CB0A3-4696-461A-A09A-853BAAE07C92}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{894CB0A3-4696-461A-A09A-853BAAE07C92}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{894CB0A3-4696-461A-A09A-853BAAE07C92}.Release|Any CPU.Build.0 = Release|Any CPU
+		{6871F608-6A2E-4161-B124-B45A56E23980}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{6871F608-6A2E-4161-B124-B45A56E23980}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{6871F608-6A2E-4161-B124-B45A56E23980}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{6871F608-6A2E-4161-B124-B45A56E23980}.Release|Any CPU.Build.0 = Release|Any CPU
+		{413F577B-A084-4201-A11F-4782A9E8D574}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{413F577B-A084-4201-A11F-4782A9E8D574}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{413F577B-A084-4201-A11F-4782A9E8D574}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{413F577B-A084-4201-A11F-4782A9E8D574}.Release|Any CPU.Build.0 = Release|Any CPU
+		{14037E95-2ED3-48AF-8442-0D4365F9212C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{14037E95-2ED3-48AF-8442-0D4365F9212C}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{14037E95-2ED3-48AF-8442-0D4365F9212C}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{14037E95-2ED3-48AF-8442-0D4365F9212C}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {EE9D5DC6-56D8-45B0-817D-D2CBE1A69D18}
+	EndGlobalSection
+EndGlobal
