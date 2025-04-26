@@ -13,6 +13,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Common", "Common\Common.csp
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Analysis", "Analysis\Analysis.csproj", "{C32953FB-DDE8-E7D9-B69A-68E084D9F8AB}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CameraTest", "CameraTest\CameraTest.csproj", "{8A1009DF-8F75-4967-A718-CEA8CC01C08B}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -39,6 +41,10 @@ Global
 		{C32953FB-DDE8-E7D9-B69A-68E084D9F8AB}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{C32953FB-DDE8-E7D9-B69A-68E084D9F8AB}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{C32953FB-DDE8-E7D9-B69A-68E084D9F8AB}.Release|Any CPU.Build.0 = Release|Any CPU
+		{8A1009DF-8F75-4967-A718-CEA8CC01C08B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{8A1009DF-8F75-4967-A718-CEA8CC01C08B}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{8A1009DF-8F75-4967-A718-CEA8CC01C08B}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{8A1009DF-8F75-4967-A718-CEA8CC01C08B}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
