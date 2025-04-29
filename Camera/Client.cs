@@ -11,13 +11,18 @@ using System.Text.Json; // Required for Path.Combine and File.Exists
 
 namespace Camera
 {
-    public class PoseData
+    public class PoseData      //最初的简化版的PoseData
     {
         public List<Landmark> keypoints { get; set; } // 使用 List<Landmark> 对应 JSON 数组
     }
     // --- Socket 客户端类 ---
     public class PoseTcpClient : IDisposable
     {
+
+        private static bool EnableInvoke = true; // 是否启用事件触发，默认启用
+        private static int PrintCount = 10; // 打印次数
+        private static readonly  Object PrintLock = new Object();
+
         private TcpClient client;
         private NetworkStream stream;
         private const string ServerIp = "127.0.0.1"; // 需要与 Python 服务器 IP 匹配
@@ -27,7 +32,7 @@ namespace Camera
         private CancellationTokenSource cts;
 
         // 事件：当接收到新的姿态数据时触发
-        public event EventHandler<PoseData> PoseDataReceived;
+       // public event EventHandler<HolisticData> PoseDataReceived;
 
         // 事件：当连接状态改变时触发
         public event EventHandler<bool> ConnectionStatusChanged;
@@ -51,23 +56,49 @@ namespace Camera
         private bool isPythonRunning;
         private string pythongScriptPath; //脚本路径
         private string pythonInterpreterPath; //python解释器路径 注意对应的环境要导入mediapipe
-                                              //导包命令 -- pip install mediapipe
-        private int waitTime = 5000;  //默认等待时间为 5 秒
+
+
+        //添加姿态属性
+        private volatile HolisticData _latestHolisticData;  // volatile 关键字用于确保数据在多线程环境下的可见性   每次数据接收时就会改变 
+        private System.Timers.Timer _periodicUpdateTimer;
+        private int _updateIntervalMs = 38;  //帧刷新间隔为 38 ms
+
+        public event EventHandler<HolisticData> PeriodicDataUPdate; // 当周期性事件触发时，提供最新的关键点数据
+        public HolisticData LatestHolisticData => _latestHolisticData;
+
+
+        private int waitTime = 10000;  //默认等待时间为 5 秒
         public PoseTcpClient(string scriptPath, string interpreterPath = "Python")
         {
             this.cts = new CancellationTokenSource();
             this.pythongScriptPath = scriptPath;
             this.pythonInterpreterPath = interpreterPath;
 
+            //初始化定时器
+            _periodicUpdateTimer = new System.Timers.Timer(_updateIntervalMs);
+            _periodicUpdateTimer.Elapsed += OnPeriodicTimerElapsed;  //绑定计时器触发事件
+            _periodicUpdateTimer.AutoReset = true; // 设置为自动重置
         }
 
+        public void SetUpdateInterval(int intervalMs)
+        {
+            if(intervalMs <= 0)
+            {
+                throw new ArgumentOutOfRangeException(nameof(intervalMs), "更新间隔不能为负数");
+            }
+            _updateIntervalMs = intervalMs;
+            if(_periodicUpdateTimer != null && _periodicUpdateTimer.Enabled)
+            {
+                _periodicUpdateTimer.Interval = _updateIntervalMs; // 更新定时器间隔
+            }
+        }
 
         //启动 python 脚本
         public void StartPythonScript()
         {
             if (isPythonRunning && pythonProcess != null && !pythonProcess.HasExited)
             {
-                Console.WriteLine("Python 已经被启动");
+                Console.WriteLine("Python 脚本已经在运行");
                 return;
             }
             try
@@ -104,11 +135,12 @@ namespace Camera
                     }
                 };
 
-                //python 执行
+                //python 脚本退出
                 pythonProcess.Exited += (sender, e) =>
                 {
                     Console.WriteLine($"python process exited with code {pythonProcess.ExitCode}");
                     isPythonRunning = false;
+                    Disconnect();
                 };
                 pythonProcess.Start();
                 pythonProcess.BeginOutputReadLine();  //开始异步读取标准输出
@@ -145,8 +177,18 @@ namespace Camera
                     {
                         Console.WriteLine("python 退出超时，关闭python进程");
                     }
-                    pythonProcess.Kill();   //前面未能正确终止，这里强制终止 进程
-                    Console.WriteLine("python 进程关闭");
+                    pythonProcess.Kill(true); // true 表示也终止子进程
+
+                    // 在强制终止后，等待进程退出，给操作系统时间进行清理
+                    // 可以用一个较短的等待时间
+                    if (pythonProcess.WaitForExit(5000)) // 例如，等待最多 5 秒进行清理
+                    {
+                        Console.WriteLine("Python 进程已强制终止并确认退出。");
+                    }
+                    else
+                    {
+                        Console.WriteLine("Python 进程强制终止，但等待退出超时（可能有残留资源需要清理）。");
+                    }
                 }
                 catch (Exception ex)
                 {
@@ -193,6 +235,13 @@ namespace Camera
                 IsConnected = true; //更新连接状态
                 stream = client.GetStream(); //获取网络流
                 byte[] lengthBuffer = new byte[MESSAGE_LENGTH_BYTES]; //缓冲区用于读取长度前缀
+
+                //连接后， 启动周期性更新定时器
+                _periodicUpdateTimer.Interval = _updateIntervalMs;
+                _periodicUpdateTimer.Start(); // 启动定时器
+                Console.WriteLine($"成功启动定时器，计时间隔为{_periodicUpdateTimer.Interval}");
+
+
 
                 //接受循环
                 while (!cts.IsCancellationRequested)  //只要不主动退出就一直读取
@@ -281,8 +330,9 @@ namespace Camera
                     string jsonString = Encoding.UTF8.GetString(messageBuffer, 0, messageLength);
                     try
                     {
-                        PoseData poseData = JsonSerializer.Deserialize<PoseData>(jsonString);
-                        PoseDataReceived?.Invoke(this, poseData); // 触发事件，将数据传递给订阅者
+                        HolisticData holisticData = JsonSerializer.Deserialize<HolisticData>(jsonString);
+                        _latestHolisticData = holisticData; // 更新最新数据
+                       // PoseDataReceived?.Invoke(this, holisticData); // 触发事件，将数据传递给订阅者
                     }
                     catch (JsonException ex)
                     {
@@ -311,6 +361,8 @@ namespace Camera
 
         public void Disconnect()
         {
+            _periodicUpdateTimer?.Stop();
+            Console.WriteLine("数据更新周期停止 ");
             cts?.Cancel(); // 发送取消信号给异步读取任务
             if (stream != null)
             {
@@ -325,7 +377,25 @@ namespace Camera
                 client = null;
             }
             IsConnected = false;
-            Console.WriteLine("服务器端断开连接.");
+            Console.WriteLine("Socket 客户端断开连接.");
+        }
+
+        //达到定时器的预设时间时会触发这个事件
+        private void OnPeriodicTimerElapsed(object sender, System.Timers.ElapsedEventArgs e)   
+        {
+            // 在定时器触发时，读取存储的最新数据
+            HolisticData dataToProvide = _latestHolisticData;
+            if (dataToProvide != null && dataToProvide.HasAnyLandmarks())
+            {
+                //数据不为空，可以向外传递
+                if (EnableInvoke)
+                {
+                    PeriodicDataUPdate?.Invoke(this, dataToProvide); // 触发事件，将数据传递给订阅者
+                    Console.WriteLine($"周期性更新数据: {dataToProvide}");
+                    PrintCount--;
+                    if(PrintCount <=0)EnableInvoke = false;
+                }
+            }
         }
 
         public void Dispose()    //用于释放资源
