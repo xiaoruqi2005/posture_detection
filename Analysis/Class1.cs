@@ -11,6 +11,7 @@ namespace Analysis
 
         private static readonly string pythonScriptPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, Constant.pythonScriptFileName);
         
+
         public Posenalyzer()
         {
             poseClient = new PoseTcpClient(pythonScriptPath, Constant.pythonInterpreterPath);
@@ -24,7 +25,7 @@ namespace Analysis
             Console.WriteLine("---开始进行姿态分析---");
             Console.WriteLine("---正在启动python 脚本---");
             poseClient.StartPythonScript();
-            Console.WriteLine("$等待{Constant.waitTime}ms让python服务器启动……");
+            Console.WriteLine($"等待{Constant.waitTime}ms让python服务器启动……");
             await Task.Delay(Constant.waitTime); //异步操作并且需要等待操作完毕
             Console.WriteLine("---正在尝试来连接到服务器---");
             Task receiveTask = poseClient.ConnectAndReceiveAsync();
@@ -63,9 +64,10 @@ namespace Analysis
             Console.WriteLine("所有资源被释放");
             GC.SuppressFinalize(this);
         }
-        private static void PoseClient_PeriodicDataUPdate(object? sender, HolisticData e) //这个函数中书写分析逻辑，每隔 33 ms 会触发一次
+        private  void PoseClient_PeriodicDataUPdate(object? sender, HolisticData e) //这个函数中书写分析逻辑，每隔 33 ms 会触发一次
         {
-            throw new NotImplementedException();
+            Console.WriteLine("成功进入分析逻辑");
+          //  throw new NotImplementedException();
         }
     }
 }

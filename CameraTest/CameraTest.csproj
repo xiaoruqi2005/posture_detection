@@ -8,6 +8,7 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\Analysis\Analysis.csproj" />
     <ProjectReference Include="..\Camera\Camera.csproj" />
   </ItemGroup>
 

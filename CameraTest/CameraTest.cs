@@ -11,7 +11,7 @@ namespace CameraTest
     {
         private static PoseTcpClient poseClient;
         private const string pythonScriptFileName = "pythonScripts\\Holistic_server.py";
-       // private const string pythonScriptFileName = "D:\\postureDetect_py\\pythonProject\\pose_server.py";
+        // private const string pythonScriptFileName = "D:\\postureDetect_py\\pythonProject\\pose_server.py";
         private static readonly string pythonScriptPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, pythonScriptFileName);
         private const string pythonInterpreterPath = "D:\\python_project\\pythonProject\\.venv\\Scripts\\python.exe";
         private static int WaitTime = 2000; // 等待时间，单位为毫秒
@@ -22,15 +22,15 @@ namespace CameraTest
 
         private static readonly object printLock = new object();
 
-        static async Task Main(string[] args)
+        static async Task Man(string[] args)
         {
-            poseClient  = new PoseTcpClient(pythonScriptPath, pythonInterpreterPath);
-           // poseClient.PoseDataReceived += PoseClient_PeriodicDataUpdate;
+            poseClient = new PoseTcpClient(pythonScriptPath, pythonInterpreterPath);
+            // poseClient.PoseDataReceived += PoseClient_PeriodicDataUpdate;
             poseClient.SetUpdateInterval(33);
             Console.WriteLine("--- 客户端开始测试 --- ");
-           
-            poseClient.ConnectionStatusChanged += PoseClient_ConnectionStatusChanged; // 订阅连接状态变化事件;
-            poseClient.PeriodicDataUPdate += PoseClient_OnPoseDataReceived;
+
+            // poseClient.ConnectionStatusChanged += PoseClient_ConnectionStatusChanged; // 订阅连接状态变化事件;
+            //poseClient.PeriodicDataUPdate += PoseClient_OnPoseDataReceived;
             Console.WriteLine("正在启动 python 脚本");
             poseClient.StartPythonScript();
             await Task.Delay(WaitTime);
@@ -49,23 +49,23 @@ namespace CameraTest
 
         }
 
-        private static  void PoseClient_ConnectionStatusChanged(object? sender, bool e)
+        private static void PoseClient_ConnectionStatusChanged(object? sender, bool e)
         {
             Console.WriteLine(" --- 连接状态改变  ---");
-           
+
         }
 
-        private static  void PoseClient_OnPoseDataReceived(object? sender, HolisticData e)
+        private static void PoseClient_OnPoseDataReceived(object? sender, HolisticData e)
         {
             Console.WriteLine("--- 数据刷新 --- ");
-          
-                    Console.WriteLine(e);
-                 
+
+            Console.WriteLine(e);
+
         }
     }
 
 
-
+}
 
 
     //    Console.WriteLine("C# Pose Client Console Application");
@@ -133,4 +133,4 @@ namespace CameraTest
     //    //    Console.WriteLine(sb.ToString());
     //    //}  封装接受的数据
     //}
-}
+

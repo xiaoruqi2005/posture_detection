@@ -68,7 +68,7 @@ namespace Camera
 
 
         private int waitTime = 10000;  //默认等待时间为 5 秒
-        public PoseTcpClient(string scriptPath, string interpreterPath = "Python")
+        public PoseTcpClient(string scriptPath, string interpreterPath )
         {
             this.cts = new CancellationTokenSource();
             this.pythongScriptPath = scriptPath;
