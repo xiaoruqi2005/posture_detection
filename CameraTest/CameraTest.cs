@@ -4,7 +4,8 @@ using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading.Tasks;
-using Camera; // 引入 PoseTcpClient 命名空间
+using Camera;
+using Common; // 引入 PoseTcpClient 命名空间
 namespace CameraTest
 {
     class Test
@@ -12,8 +13,8 @@ namespace CameraTest
         private static PoseTcpClient poseClient;
         private const string pythonScriptFileName = "pythonScripts\\Holistic_server.py";
         // private const string pythonScriptFileName = "D:\\postureDetect_py\\pythonProject\\pose_server.py";
-        private static readonly string pythonScriptPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, pythonScriptFileName);
-        private const string pythonInterpreterPath = "D:\\python_project\\pythonProject\\.venv\\Scripts\\python.exe";
+        private static readonly string pythonScriptPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, Constants.pythonScriptFileName);
+       // private const string pythonInterpreterPath = "D:\\python_project\\pythonProject\\.venv\\Scripts\\python.exe";
         private static int WaitTime = 2000; // 等待时间，单位为毫秒
 
         //private const int AnalysisReteMs = 33;
@@ -22,9 +23,9 @@ namespace CameraTest
 
         private static readonly object printLock = new object();
 
-        static async Task Man(string[] args)
+        static async Task Main(string[] args)
         {
-            poseClient = new PoseTcpClient(pythonScriptPath, pythonInterpreterPath);
+            poseClient = new PoseTcpClient(pythonScriptPath,Constants.pythonInterpreterPath);
             // poseClient.PoseDataReceived += PoseClient_PeriodicDataUpdate;
             poseClient.SetUpdateInterval(33);
             Console.WriteLine("--- 客户端开始测试 --- ");

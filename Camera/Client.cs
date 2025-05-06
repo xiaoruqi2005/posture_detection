@@ -7,13 +7,23 @@ using System.Net.Sockets;
 using System.Linq; // Optional: For Linq extensions like .Any()
 using System.Diagnostics; // Required for Process
 using System.IO;
-using System.Text.Json; // Required for Path.Combine and File.Exists
-
+using System.Text.Json;
+using System.Reflection.Metadata; // Required for Path.Combine and File.Exists
+using Common;
 namespace Camera
 {
     public class PoseData      //最初的简化版的PoseData
     {
         public List<Landmark> keypoints { get; set; } // 使用 List<Landmark> 对应 JSON 数组
+        public override string ToString()
+        {
+            StringBuilder sb = new StringBuilder();
+            foreach (Landmark l in keypoints)
+            {
+                sb.Append(l.ToString());
+            }
+            return sb.ToString();
+        }
     }
     // --- Socket 客户端类 ---
     public class PoseTcpClient : IDisposable
@@ -56,7 +66,7 @@ namespace Camera
         private bool isPythonRunning;
         private string pythongScriptPath; //脚本路径
         private string pythonInterpreterPath; //python解释器路径 注意对应的环境要导入mediapipe
-
+        private string pythonExexutable; //  //python可执行文件路径
 
         //添加姿态属性
         private volatile HolisticData _latestHolisticData;  // volatile 关键字用于确保数据在多线程环境下的可见性   每次数据接收时就会改变 
@@ -68,12 +78,12 @@ namespace Camera
 
 
         private int waitTime = 10000;  //默认等待时间为 5 秒
-        public PoseTcpClient(string scriptPath, string interpreterPath )
+        public PoseTcpClient(string scriptPath, string interpreterPath)//string scriptPath, string interpreterPath )
         {
             this.cts = new CancellationTokenSource();
             this.pythongScriptPath = scriptPath;
             this.pythonInterpreterPath = interpreterPath;
-
+            //this.pythonExexutable = pythonExecutablePath;
             //初始化定时器
             _periodicUpdateTimer = new System.Timers.Timer(_updateIntervalMs);
             _periodicUpdateTimer.Elapsed += OnPeriodicTimerElapsed;  //绑定计时器触发事件
@@ -108,7 +118,7 @@ namespace Camera
                     StartInfo = new ProcessStartInfo  //简便写法， 为对象进行赋值
                     {
                         FileName = pythonInterpreterPath, //python解释器路径
-                        Arguments = pythongScriptPath, //python脚本路径
+                        Arguments = pythongScriptPath, //python脚本路径  使用exe可执行文件时不需要解释器路径
                         UseShellExecute = false, //不使用shell执行
                         RedirectStandardOutput = true, //重定向标准输出
                         RedirectStandardError = true,

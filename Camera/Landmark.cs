@@ -17,6 +17,17 @@ namespace Camera
         public float z { get; set; }  //z坐标
         public float? visibility { get; set; }  //可见性
         public float? presence { get; set; } //存在性
+
+        public override string ToString()
+        {
+            StringBuilder sb = new StringBuilder();
+            sb.Append("x :" + x + " ");
+            sb.Append("y :" +y + " ");
+            sb.Append("z :" + z + " ");
+            sb.Append("visibility :" + visibility + " ");
+            sb.Append("presence :" + presence + " ");
+            return sb.ToString();
+        }
     }
     
 
@@ -46,22 +57,23 @@ namespace Camera
             StringBuilder sb = new StringBuilder();
             sb.AppendLine("Pose Data:");
             foreach (var point in pose)
-             sb.Append($"point({point.x},{point.y}) visible{point.visibility}  ");
+             sb.Append(point.ToString()); //打印每个点的信息
+                                                 //sb.Append($"point({point.x},{point.y}) visible{point.visibility}  ");
             sb.AppendLine();
 
             sb.AppendLine("Face Data:");
             foreach  (var point in face)
-                sb.Append($"point({point.x},{point.y}) visible{point.visibility}  ");
+                sb.Append(point.ToString());//  sb.Append($"point({point.x},{point.y}) visible{point.visibility}  ");
             sb.AppendLine();
 
             sb.AppendLine("Left_hand Data:");
             foreach (var point in left_hand)
-                sb.Append($"point({point.x},{point.y}) visible{point.visibility}  ");
+                sb.Append(point.ToString());// sb.Append($"point({point.x},{point.y}) visible{point.visibility}  ");
             sb.AppendLine();
 
             sb.AppendLine("Right_hand Data:");
             foreach (var point in right_hand)
-                sb.Append($"point({point.x},{point.y}) visible{point.visibility}  ");
+                sb.Append(point.ToString());//sb.Append($"point({point.x},{point.y}) visible{point.visibility}  ");
             sb.AppendLine();
 
             return sb.ToString();
