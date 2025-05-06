@@ -66,17 +66,18 @@ namespace Analysis
             Console.WriteLine("所有资源被释放");
             GC.SuppressFinalize(this);
         }
-        private  void PoseClient_PeriodicDataUPdate(object? sender, HolisticData e) //这个函数中书写分析逻辑，每隔 33 ms 会触发一次
+        private  void PoseClient_PeriodicDataUPdate(object? sender, HolisticData data) //这个函数中书写分析逻辑，每隔 33 ms 会触发一次
         {
             Console.WriteLine("成功进入分析逻辑");
             //  throw new NotImplementedException();
 
             /*
+             数学图形可视化散点图  y->1-y
               symbolSize: 50,  //点大小
       data: [
-          [0.72688544, 0.56508335],   //0鼻子     
-            [0.7729777, 0.67853543],    //      
-            [0.802631, 0.67663142],     //       
+          [0.72688544, 0.56508335],   //0是鼻子     
+            [0.7729777, 0.67853543],        
+            [0.802631, 0.67663142],          
             [0.8322169, 0.67561328],
             [0.6759644, 0.68899593],
             [0.6404269, 0.6926907],
@@ -111,7 +112,7 @@ namespace Analysis
              */
 
             //体态分析逻辑-----------------------
-            if (!e.HasPoseData) return;//pose数据未获取到
+            if (!data.HasPoseData) return;//pose数据未获取到
             //1.获取关键点(带可见性检查)
             var nose = GetValidLandmark(data.pose, NOSE);
             var leftShoulder = GetValidLandmark(data.pose, LEFT_SHOULDER);
