@@ -9,14 +9,14 @@ namespace Analysis
         //发出停止信号的 TaskCompletionSource
         private TaskCompletionSource<bool> stopSignal = new TaskCompletionSource<bool>();
 
-        private static readonly string pythonScriptPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, Constant.pythonScriptFileName);
+        private static readonly string pythonScriptPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, Constants.pythonExecutable);
         
 
         public Posenalyzer()
         {
-            poseClient = new PoseTcpClient(pythonScriptPath, Constant.pythonInterpreterPath);
+            poseClient = new PoseTcpClient(pythonScriptPath,Constants.pythonScriptFileName);
             poseClient.PeriodicDataUPdate += PoseClient_PeriodicDataUPdate;
-            poseClient.SetUpdateInterval(Constant.InterValMs);
+            poseClient.SetUpdateInterval(Constants.InterValMs);
             poseClient.ConnectionStatusChanged += PoseClient_ConnectionStatusChanged;
         }
 
@@ -25,8 +25,8 @@ namespace Analysis
             Console.WriteLine("---开始进行姿态分析---");
             Console.WriteLine("---正在启动python 脚本---");
             poseClient.StartPythonScript();
-            Console.WriteLine($"等待{Constant.waitTime}ms让python服务器启动……");
-            await Task.Delay(Constant.waitTime); //异步操作并且需要等待操作完毕
+            Console.WriteLine($"等待{Constants.waitTime}ms让python服务器启动……");
+            await Task.Delay(Constants.waitTime); //异步操作并且需要等待操作完毕
             Console.WriteLine("---正在尝试来连接到服务器---");
             Task receiveTask = poseClient.ConnectAndReceiveAsync();
             _ = receiveTask.ContinueWith(t =>
