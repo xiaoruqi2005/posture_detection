@@ -5,6 +5,21 @@ using System.Threading.Tasks;
 
 namespace Analysis
 {
+    public class Vector3
+    {   //基础坐标分量
+        public float x { get; set; }
+        public float y { get; set; }
+        public float z { get; set; }
+
+        // 构造函数
+        public Vector3(float x = 0, float y = 0, float z = 0)
+        {
+            this.x = x;
+            this.y = y;
+            this.z = z;
+        }
+    }
+
     public class Posenalyzer: IDisposable
     {
         private  PoseTcpClient poseClient;
@@ -12,20 +27,20 @@ namespace Analysis
         private TaskCompletionSource<bool> stopSignal = new TaskCompletionSource<bool>();
 
         private static readonly string pythonScriptPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, Constants.pythonExecutable);
-        //左肩 右肩 左眼 右眼 鼻子 左髋 右髋
+        //左肩 右肩 左眼 右眼 鼻子 
         public const int LEFT_SHOULDER_INDEX = 11;  //基于33个点的各个关键点对应的索引
         public const int RIGHT_SHOULDER_INDEX = 12;
         public const int LEFT_EYE_INDEX = 2;
         public const int RIGHT_EYE_INDEX = 5;
         public const int NOSE_INDEX = 0;
 
-        public const int LEFT_HIP = 23;
-        public const int RIGHT_HIP = 24;
+        //public const int LEFT_HIP = 23;
+        //public const int RIGHT_HIP = 24;
 
         public const int Width = 1920;  //宽度和高度的像素值 
         public const int Height = 1200;
 
-        public bool _isStandardPosture = false;
+        public bool _isStandardPosture = false;//比较综合的一个评价
 
         public Posenalyzer()
         {
@@ -52,7 +67,7 @@ namespace Analysis
             await stopSignal.Task; //返回一个 Task 对象，表示分析的结果
         }
         //发出停止分析的信号
-         public void SignalStop()
+        public void SignalStop()
         {
             Console.WriteLine("接收到停止分析的信号 ");
             stopSignal.TrySetResult(true);  //设置TaskCompletionSource的 结果
@@ -100,17 +115,33 @@ namespace Analysis
         //两肩水平检测
         private bool CheckShoulder(Landmark ls, Landmark rs)
         {
-           
+            if (ls == null || rs == null) return false;
+
+            // 计算双肩连线角度
+            float deltaY = rs.y - ls.y;
+            float deltaX = rs.x - ls.x;
+
+            // 处理水平线特殊情况
+            if (Math.Abs(deltaX) < 0.0001f) deltaX = deltaY > 0 ? 0.0001f : -0.0001f;//接近零的情况，将其赋值一个极小值，防止除零
+            float angle = (float)(Math.Atan(deltaY / deltaX) * 180 / Math.PI);//计算两点斜率的反正切值，即弧度值,*180/PI转为角度
+            bool isLevel = Math.Abs(angle) <= Constants.MaxHorizontalDeg;//由于y轴向下，对角度取正
         }
         //两眼水平
-        private bool CheckEye(Landmark le, Landmark re) { 
-        
+        private bool CheckEye(Landmark le, Landmark re) {
+            Common.result.ShoulederAngleDeg = angle;
         }
+        
         //头部倾斜（两眼中心与鼻子夹角）
         private bool CheckEyeAndNose(Landmark le, Landmark re,Landmark nose)
         {
 
         }
+        //驼背检测
+
+
+
+
+
         //颈部前倾检测
         private bool CheckNeckForward(Landmark nose, Landmark ls, Landmark rs)
         {
@@ -122,8 +153,10 @@ namespace Analysis
 
             // z值越大表示越靠近摄像头（前倾）
             return (headForward - shoulderMidZ) > NECK_FORWARD_THRESHOLD;
+
+            //缺一个常数（有取舍的选择大小） 差值乘以常数 
         }
-        //面部情绪识别
+       
 
 
 
