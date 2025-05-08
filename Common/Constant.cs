@@ -8,5 +8,7 @@
         public static string pythonExecutable = "pythonScripts\\Holistic_server\\Holistic_server.exe"; // python 可执行文件路径 
         public static int InterValMs = 33; // 解析间隔时间
         public static int waitTime = 5000; // 等待时间 ，单位 秒
+
+        
     }
 }
