@@ -1,6 +1,8 @@
 ﻿using Camera;
 using Common;
 using System.Threading.Tasks;
+using static Analysis.AnalysisResult;
+using static Common.Constants;
 
 
 namespace Analysis
@@ -26,7 +28,7 @@ namespace Analysis
         //发出停止信号的 TaskCompletionSource
         private TaskCompletionSource<bool> stopSignal = new TaskCompletionSource<bool>();
 
-        private static readonly string pythonScriptPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, Constants.pythonExecutable);
+        private static readonly string pythonScriptPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, Constants.pythonScriptFileName);
         //左肩 右肩 左眼 右眼 鼻子 
         public const int LEFT_SHOULDER_INDEX = 11;  //基于33个点的各个关键点对应的索引
         public const int RIGHT_SHOULDER_INDEX = 12;
@@ -37,14 +39,13 @@ namespace Analysis
         //public const int LEFT_HIP = 23;
         //public const int RIGHT_HIP = 24;
 
-        public const int Width = 1920;  //宽度和高度的像素值 
-        public const int Height = 1200;
-
+        public static readonly AnalysisResult result;
+    
         public bool _isStandardPosture = false;//比较综合的一个评价
 
         public Posenalyzer()
         {
-            poseClient = new PoseTcpClient(pythonScriptPath,Constants.pythonScriptFileName);
+            poseClient = new PoseTcpClient(pythonScriptPath,Constants.pythonInterpreterPath);
             poseClient.PeriodicDataUPdate += PoseClient_PeriodicDataUPdate;
             poseClient.SetUpdateInterval(Constants.InterValMs);
             poseClient.ConnectionStatusChanged += PoseClient_ConnectionStatusChanged;
@@ -101,69 +102,260 @@ namespace Analysis
 
      
             //体态分析逻辑-----------------------
-            if (!data.HasPoseData) return;//pose数据未获取到
+           // if (!data.HasPoseData) return;//pose数据未获取到
             
             //获取 需要的几个关键点的坐标
-            Landmark nose = e.pose[NOSE_INDEX];
-            Landmark leftShouder = e.pose[LEFT_SHOULDER_INDEX];
-            Landmark rightShoudler = e.pose[RIGHT_SHOULDER_INDEX];
-            Landmark leftEye = e.pose[LEFT_EYE_INDEX];
-            Landmark rightEye = e.pose[RIGHT_EYE_INDEX];
+            Landmark nose = data.pose[NOSE_INDEX];
+            Landmark leftShouder = data.pose[LEFT_SHOULDER_INDEX];
+            Landmark rightShoudler = data.pose[RIGHT_SHOULDER_INDEX];
+            Landmark leftEye = data.pose[LEFT_EYE_INDEX];
+            Landmark rightEye = data.pose[RIGHT_EYE_INDEX];
+
+            CheckShoulder(leftShouder, rightShoudler);
+            CheckHead(leftEye,rightEye, nose);
+            CheckEye(leftEye, rightEye);
+            CheckHunchback(leftShouder, rightShoudler,nose);
+            //测试效果
+            Console.WriteLine("运行到这里了1");
+            Console.WriteLine(result);
+            Console.WriteLine("运行到这里了2");
+
         }
 
         #region 检测算法
         //两肩水平检测
-        private bool CheckShoulder(Landmark ls, Landmark rs)
+        private void CheckShoulder(Landmark ls, Landmark rs )
         {
-            if (ls == null || rs == null) return false;
 
+            if (ls == null || rs == null)
+            {
+                result.ShoulderState = Constants.TiltSeverity.Unknown; // 更新为未知
+                result.ShoulderTiltAngle = 0f; // 角度也设为0或特定值
+                return;
+            }
             // 计算双肩连线角度
-            float deltaY = rs.y - ls.y;
-            float deltaX = rs.x - ls.x;
+            float deltaY =( rs.y - ls.y) * Constants.Height;
+            float deltaX = (rs.x - ls.x) * Constants.Width;
+            
+            float calculatedAngleDegrees;       //计算结果的角度
 
-            // 处理水平线特殊情况
-            if (Math.Abs(deltaX) < 0.0001f) deltaX = deltaY > 0 ? 0.0001f : -0.0001f;//接近零的情况，将其赋值一个极小值，防止除零
-            float angle = (float)(Math.Atan(deltaY / deltaX) * 180 / Math.PI);//计算两点斜率的反正切值，即弧度值,*180/PI转为角度
-            bool isLevel = Math.Abs(angle) <= Constants.MaxHorizontalDeg;//由于y轴向下，对角度取正
+            // 处理两个地标点几乎重合的特殊情况
+            if (Math.Abs(deltaX) < 0.0001f && Math.Abs(deltaY) < 0.0001f)  
+            {
+                calculatedAngleDegrees = 0f;
+                result.ShoulderState = Constants.TiltSeverity.Unknown;
+                result.ShoulderTiltAngle = calculatedAngleDegrees;
+                return;
+            }
+
+            // 使用 Math.Atan2(y, x) 计算角度 (弧度)
+            // 角度是从 X 轴正方向开始，逆时针测量。
+            // 对于屏幕坐标系 (Y 轴向下):
+            //   - 水平 (deltaY = 0, deltaX > 0): angle = 0 rad
+            //   - 右肩低于左肩 (deltaY > 0, deltaX > 0): angle > 0 rad
+            //   - 右肩高于左肩 (deltaY < 0, deltaX > 0): angle < 0 rad
+            double angleRadians = Math.Atan2(deltaY, deltaX);
+
+            // 将弧度转换为角度
+            calculatedAngleDegrees = (float)(angleRadians * 180.0 / Math.PI);
+            result.ShoulderTiltAngle = calculatedAngleDegrees; // 存储计算出的原始角度
+
+            // 根据角度判断倾斜程度并更新 result.ShoulderState
+            float absAngle = Math.Abs(calculatedAngleDegrees);
+
+
+            if (absAngle <= Constants.MaxShoulderHorizontalDeg)
+            {
+                result.ShoulderState = TiltSeverity.Level;
+            }
+            // calculatedAngleDegrees > Constants.MaxHorizontalDeg: 右肩低于左肩 (即左肩相对偏高)
+            else if (calculatedAngleDegrees > Constants.MaxShoulderHorizontalDeg)
+            {
+                // 只要角度大于 MaxHorizontalDeg，就认为是左肩偏高
+                result.ShoulderState = TiltSeverity.LeftSlightlyHigh;
+            }
+            // calculatedAngleDegrees < -Constants.MaxHorizontalDeg: 右肩高于左肩 (即右肩相对偏高)
+            else if (calculatedAngleDegrees < -Constants.MaxShoulderHorizontalDeg)
+            {
+                // 只要角度的绝对值大于 MaxHorizontalDeg (且角度为负)，就认为是右肩偏高
+                result.ShoulderState = TiltSeverity.RightSlightlyHigh;
+            }
+            else
+            {
+                //这里不糊用到，故缺省
+            }
+
         }
+
         //两眼水平
-        private bool CheckEye(Landmark le, Landmark re) {
-            Common.result.ShoulederAngleDeg = angle;
-        }
-        
-        //头部倾斜（两眼中心与鼻子夹角）
-        private bool CheckEyeAndNose(Landmark le, Landmark re,Landmark nose)
-        {
 
+        private void CheckEye(Landmark le, Landmark re)
+        {
+            if (le == null || re == null)
+            {
+                result.EyeState = Constants.TiltSeverity.Unknown;
+                result.EyeTiltAngle = 0f;
+                return;
+            }
+
+            // 计算双眼连线在像素坐标系中的差值
+            // 假设 le.y, le.x 等是归一化坐标 (0-1)
+            float deltaY = (re.y - le.y) * Constants.Height; // 右眼Y - 左眼Y
+            float deltaX = (re.x - le.x) * Constants.Width;  // 右眼X - 左眼X
+
+            float calculatedAngleDegrees;
+
+            // 处理两个地标点几乎重合的特殊情况 (理论上眼睛不会完全重合)
+            if (Math.Abs(deltaX) < 0.0001f && Math.Abs(deltaY) < 0.0001f)
+            {
+                calculatedAngleDegrees = 0f;
+                result.EyeState = Constants.TiltSeverity.Level;
+                result.EyeTiltAngle = calculatedAngleDegrees;
+                return;
+            }
+
+            // 使用 Math.Atan2(y, x) 计算角度 (弧度)
+            // 角度约定与肩膀相同:
+            // 正值: 右眼低于左眼 (即左眼相对偏高)
+            // 负值: 右眼高于左眼 (即右眼相对偏高)
+            double angleRadians = Math.Atan2(deltaY, deltaX);
+
+            // 将弧度转换为角度
+            calculatedAngleDegrees = (float)(angleRadians * 180.0 / Math.PI);
+            result.EyeTiltAngle = calculatedAngleDegrees; // 存储计算出的原始角度
+
+            // 根据角度判断倾斜程度并更新 result.EyeState
+            float absAngle = Math.Abs(calculatedAngleDegrees);
+
+            if (absAngle <= Constants.MaxEyeHorizontalDeg) // 使用眼睛特定的阈值
+            {
+                result.EyeState = Constants.TiltSeverity.Level;
+            }
+            // calculatedAngleDegrees > Constants.MaxEyeHorizontalDeg: 右眼低于左眼 => 左眼更高
+            else if (calculatedAngleDegrees > Constants.MaxEyeHorizontalDeg)
+            {
+                result.EyeState = Constants.TiltSeverity.LeftSlightlyHigh;
+            }
+            // calculatedAngleDegrees < -Constants.MaxEyeHorizontalDeg: 右眼高于左眼 => 右眼更高
+            else if (calculatedAngleDegrees < -Constants.MaxEyeHorizontalDeg)
+            {
+                result.EyeState = Constants.TiltSeverity.RightSlightlyHigh;
+            }
+            else {
+              //缺省    
+            }
         }
         //驼背检测
-
-
-
-
-
-        //颈部前倾检测
-        private bool CheckNeckForward(Landmark nose, Landmark ls, Landmark rs)
+        public void CheckHunchback(Landmark ls, Landmark rs, Landmark nos)
         {
-            // 计算头部水平偏移量（使用z坐标的相对值）
-            float headForward = nose.z ?? 0;
+            if (ls == null || rs == null || nos == null)
+            {
+                result.HunchbackState = HunchbackSeverity.Unknown;
+                return;
+            }
+            ls.z = ls.z * Constants.Depth;
+            rs.z = rs.z * Constants.Depth;
+            nos.z = nos.z * Constants.Depth;
+           
+            // 1. 计算双肩的平均Z坐标
+            //    注意：这里简单取平均。更复杂的模型可能会考虑双肩连线的中点。
+            float shoulderAverageZ = (ls.z + rs.z) / 2.0f;
 
-            // 计算肩膀基准位置
-            float shoulderMidZ = (ls.z + rs.z) / 2 ?? 0;
+            // 2. 计算鼻子Z坐标与肩膀平均Z坐标的差异
+            //    如果鼻子比肩膀更靠前（Z值更小），则 difference 为负值。
+            float zDifference = nos.z - shoulderAverageZ;
+            // result.NoseShoulderZDifference = zDifference;
 
-            // z值越大表示越靠近摄像头（前倾）
-            return (headForward - shoulderMidZ) > NECK_FORWARD_THRESHOLD;
+            // 3. 根据阈值判断是否驼背 (颈部前倾)
+            //    Constants.NeckForwardThresholdZ 是一个正值。
+            //    我们期望 nos.z < (shoulderAverageZ - NeckForwardThresholdZ)
+            //    这等价于 nos.z - shoulderAverageZ < -NeckForwardThresholdZ
+            //    即 zDifference < -Constants.NeckForwardThresholdZ
 
-            //缺一个常数（有取舍的选择大小） 差值乘以常数 
+            // z坐标越小说明离屏幕越近
+            if (zDifference >= Constants.NeckForwardThresholdZ) {
+                //如果鼻子在肩膀后面，说明没有驼背
+                result.HunchbackState = HunchbackSeverity.NoHunchback; //没有驼背
+            }
+
+            else if( zDifference < Constants.NeckForwardThresholdZ   && zDifference > Constants.NectForwardThresholdZObvious )
+                result.HunchbackState = HunchbackSeverity.SlightHunchback; //轻微驼背
+            else result.HunchbackState = HunchbackSeverity.ObviousHunchback; //严重驼背
+            
         }
-       
 
 
+        //头部倾斜
+        public void CheckHead(Landmark le ,Landmark re,Landmark nos)
+        {
+            if (le == null || re == null)
+            {
+                result.HeadTiltState = HeadTiltSeverity.Unknown;
+                result.HeadTiltAngle = 0f;
+                return;
+            }
 
+            // 计算双眼连线在像素坐标系中的差值
+            // 假设 le.y, le.x 等是归一化坐标 (0-1)
+            float deltaY = (re.y - le.y) * Constants.Height; // 右眼Y - 左眼Y
+            float deltaX = (re.x - le.x) * Constants.Width;  // 右眼X - 左眼X
 
+            float calculatedAngleDegrees;
+
+            if (Math.Abs(deltaX) < 0.0001f && Math.Abs(deltaY) < 0.0001f)
+            {
+                calculatedAngleDegrees = 0f;
+                result.HeadTiltState = HeadTiltSeverity.Upright;
+                result.HeadTiltAngle = calculatedAngleDegrees;
+                return;
+            }
+
+            // 使用 Math.Atan2(y, x) 计算角度 (弧度)
+            // 角度约定:
+            //   Y轴向下。Atan2(deltaY, deltaX)
+            //   正角度: 右眼低于左眼 (头部向观察者的左侧倾斜，即人物的左倾)
+            //   负角度: 右眼高于左眼 (头部向观察者的右侧倾斜，即人物的右倾)
+            double angleRadians = Math.Atan2(deltaY, deltaX);
+
+            calculatedAngleDegrees = (float)(angleRadians * 180.0 / Math.PI);
+            result.HeadTiltAngle = calculatedAngleDegrees;
+
+            float absAngle = Math.Abs(calculatedAngleDegrees);
+
+            if (absAngle <= Constants.MaxHeadUprightAngle)
+            {
+                result.HeadTiltState = HeadTiltSeverity.Upright;
+            }
+            // calculatedAngleDegrees > 0: 头部向人物的左侧倾斜
+            else if (calculatedAngleDegrees > Constants.MaxHeadUprightAngle)
+            {
+                if (calculatedAngleDegrees <= Constants.SlightHeadTiltThreshold)
+                {
+                    result.HeadTiltState = HeadTiltSeverity.SlightlyTiltedLeft;
+                }
+                else // calculatedAngleDegrees > Constants.SlightHeadTiltThreshold
+                {
+                    result.HeadTiltState = HeadTiltSeverity.SignificantlyTiltedLeft;
+                }
+            }
+            // calculatedAngleDegrees < 0: 头部向人物的右侧倾斜
+            else if (calculatedAngleDegrees < -Constants.MaxHeadUprightAngle)
+            {
+                // 此时 calculatedAngleDegrees 是负数, absAngle 是其绝对值
+                if (absAngle <= Constants.SlightHeadTiltThreshold)
+                {
+                    result.HeadTiltState = HeadTiltSeverity.SlightlyTiltedRight;
+                }
+                else // absAngle > Constants.SlightHeadTiltThreshold
+                {
+                    result.HeadTiltState = HeadTiltSeverity.SignificantlyTiltedRight;
+                }
+            }
+        }
+        
         #endregion
 
-        #region 辅助算法
+     /*   #region 辅助算法
         //带可见性检查的关键点获取
         private Landmark GetValidLandmark(List<Landmark> landmarks, int index, float minVisibility = 0.5f)//设定最小可见性为0.5
         {
@@ -180,7 +372,7 @@ namespace Analysis
         }
 
 
-        #endregion
+        #endregion*/
     }
 }
 

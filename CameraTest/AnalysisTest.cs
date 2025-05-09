@@ -9,7 +9,7 @@ namespace CameraTest
 {
     class AnalysisTest
     {
-        public static void Man()
+        public static void Main()
         {
             Console.WriteLine("--- 开始进行测试  ---");
             Posenalyzer ana = new Posenalyzer();

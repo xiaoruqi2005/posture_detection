@@ -7,7 +7,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PostureChecker", "PostureCh
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Camera", "Camera\Camera.csproj", "{6871F608-6A2E-4161-B124-B45A56E23980}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Pose", "Pose\Pose.csproj", "{413F577B-A084-4201-A11F-4782A9E8D574}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Result", "Pose\Result.csproj", "{413F577B-A084-4201-A11F-4782A9E8D574}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Common", "Common\Common.csproj", "{14037E95-2ED3-48AF-8442-0D4365F9212C}"
 EndProject
