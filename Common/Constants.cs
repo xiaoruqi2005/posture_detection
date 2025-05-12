@@ -6,9 +6,10 @@ namespace Common
     {
         public const String pythonScriptFileName = "pythonScripts\\Holistic_server.py";         // python 脚本路径
         public const String pythonScriptPath2 = "pythonScripts\\pose_server.py";
-        public const String pythonInterpreterPath = "D:\\python_project\\pythonProject\\.venv\\Scripts\\python.exe"; // Python 解释器路径 注意对应的python环境下需要有mediapipe包
-        public const String pythonExecutable = "pythonScripts\\Holistic_server\\Holistic_server.exe"; // python 可执行文件路径 
-        public const int InterValMs = 33; // 解析间隔时间
+        //public const String pythonInterpreterPath = "D:\\python_project\\pythonProject\\.venv\\Scripts\\python.exe"; // Python 解释器路径 注意对应的python环境下需要有mediapipe包
+        // public const String pythonExecutable = "pythonScripts\\Holistic_server\\Holistic_server.exe"; // python 可执行文件路径 
+        public const String pythonInterpreterPath = "pythonScripts\\PythonEnv\\Scripts\\python.exe";
+        public const int InterValMs = 5000; // 解析间隔时间
         public const int waitTime = 5000; // 等待时间 ，单位 毫秒
 
         //public static readonly AnalysisResult result;//存储结果的静态对象
@@ -34,6 +35,14 @@ namespace Common
         public const int Width = 1920;  //宽度和高度的像素值 
         public const int Height = 1200;
         public const int Depth = 100;   //用于描述深度的相对值
+
+        //头部朝向的阈值
+        public const float EarZDifferenceThreshold = 100; // 耳朵z轴差异阈值
+        public const float SymmetryDifferenceRatioThreshold = 100; // 耳朵对称差异比率阈值
+        public const float HeadYawThreshold = 30; // 头部水平朝向的阈值
+        public const float HeadPitchThreshold = 30; // 头部竖直朝向的阈值
+        public const float PitchNoseEyeYThresholdNormalized = 10;
+        public const float PitchForeheadChinZThreshold = 100;
         public enum TiltSeverity
         {
             /// <summary>
@@ -99,5 +108,22 @@ namespace Common
             /// </summary>
             SignificantlyTiltedRight
         }    // 头部左右倾的枚举类型
+
+        public enum HeadOrientationHorizontal
+        {
+            Unknown,
+            Forward,
+            Left,
+            Right
+        }  //头部朝枚举类型
+
+        public enum HeadOrientationVertical
+        {
+            Unknown,
+            Straight, // 平视
+            Up,
+            Down
+        }
+
     }
 }

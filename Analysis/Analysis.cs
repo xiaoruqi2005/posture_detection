@@ -36,10 +36,22 @@ namespace Analysis
         public const int RIGHT_EYE_INDEX = 5;
         public const int NOSE_INDEX = 0;
 
+
+        public const int NOSE_TIP = 1;
+        public const int CHIN_CENTER = 152;
+        public const int LEFT_EYE_OUTER_CORNER = 33;
+        public const int RIGHT_EYE_OUTER_CORNER = 263;
+        public const int LEFT_MOUTH_CORNER = 61;
+        public const int RIGHT_MOUTH_CORNER = 291;
+        public const int LEFT_EAR_TRAGION = 234; // (示例，耳屏附近点)
+        public const int RIGHT_EAR_TRAGION = 454; // (示例)
+        public const int BETWEEN_EYEBROWS = 10;
+
+
         //public const int LEFT_HIP = 23;
         //public const int RIGHT_HIP = 24;
 
-        public static readonly AnalysisResult result;
+        public static readonly AnalysisResult result = new AnalysisResult();
     
         public bool _isStandardPosture = false;//比较综合的一个评价
 
@@ -49,6 +61,7 @@ namespace Analysis
             poseClient.PeriodicDataUPdate += PoseClient_PeriodicDataUPdate;
             poseClient.SetUpdateInterval(Constants.InterValMs);
             poseClient.ConnectionStatusChanged += PoseClient_ConnectionStatusChanged;
+         //   poseClient.ConnectionStatusChanged += PoseClient_PeriodicDataUPdate;
         }
 
         public  async Task StartAsync()
@@ -95,34 +108,41 @@ namespace Analysis
             Console.WriteLine("所有资源被释放");
             GC.SuppressFinalize(this);
         }
-        private  void PoseClient_PeriodicDataUPdate(object? sender, HolisticData data) //这个函数中书写分析逻辑，每隔 33 ms 会触发一次
+        private void PoseClient_PeriodicDataUPdate(object? sender, HolisticData data) //这个函数中书写分析逻辑，每隔 33 ms 会触发一次
         {
             Console.WriteLine("成功进入分析逻辑");
             //  throw new NotImplementedException();
 
-     
-            //体态分析逻辑-----------------------
-           // if (!data.HasPoseData) return;//pose数据未获取到
+            Console.WriteLine("开始进行体态分析");
+            if (data == null)
+            {
+                Console.WriteLine("data 为空，无法分析");
+                return;
+            }
             
-            //获取 需要的几个关键点的坐标
             Landmark nose = data.pose[NOSE_INDEX];
             Landmark leftShouder = data.pose[LEFT_SHOULDER_INDEX];
             Landmark rightShoudler = data.pose[RIGHT_SHOULDER_INDEX];
             Landmark leftEye = data.pose[LEFT_EYE_INDEX];
             Landmark rightEye = data.pose[RIGHT_EYE_INDEX];
 
+            CheckTimeStamp(); //记录当前帧时间戳
             CheckShoulder(leftShouder, rightShoudler);
             CheckHead(leftEye,rightEye, nose);
             CheckEye(leftEye, rightEye);
             CheckHunchback(leftShouder, rightShoudler,nose);
             //测试效果
-            Console.WriteLine("运行到这里了1");
+        //    Console.WriteLine("运行到这里了1");
             Console.WriteLine(result);
-            Console.WriteLine("运行到这里了2");
+           // Console.WriteLine("运行到这里了2");
 
         }
 
         #region 检测算法
+        private void CheckTimeStamp()
+        {
+            result.Timestamp = DateTime.Now;
+        }
         //两肩水平检测
         private void CheckShoulder(Landmark ls, Landmark rs )
         {
@@ -137,7 +157,7 @@ namespace Analysis
             float deltaY =( rs.y - ls.y) * Constants.Height;
             float deltaX = (rs.x - ls.x) * Constants.Width;
             
-            float calculatedAngleDegrees;       //计算结果的角度
+            float calculatedAngleDegrees;       //计算结果的角度--
 
             // 处理两个地标点几乎重合的特殊情况
             if (Math.Abs(deltaX) < 0.0001f && Math.Abs(deltaY) < 0.0001f)  
@@ -182,7 +202,7 @@ namespace Analysis
             }
             else
             {
-                //这里不糊用到，故缺省
+                //这里不会用到，故缺省
             }
 
         }
@@ -352,27 +372,153 @@ namespace Analysis
                 }
             }
         }
-        
+
+        //头部朝向检测
+              /// <summary>
+              /// 计算点到一条由两点定义的直线的垂直距离 (2D)。
+              /// lineP1, lineP2 定义直线，point 是要计算距离的点。
+              /// </summary>
+    private float DistancePointToLine(Landmark point, Landmark lineP1, Landmark lineP2)
+        {
+            if (point == null || lineP1 == null || lineP2 == null) return float.MaxValue;
+
+            // 使用向量叉积的模除以基线向量的模
+            // 或者使用点到直线的距离公式: |Ax0 + By0 + C| / sqrt(A^2 + B^2)
+            // 直线方程: (y1-y2)x + (x2-x1)y + (x1y2 - x2y1) = 0
+            // A = y1-y2, B = x2-x1, C = x1y2 - x2y1
+            // (x0, y0) 是 point 的坐标
+            double A = lineP1.y - lineP2.y;
+            double B = lineP2.x - lineP1.x;
+            double C = (lineP1.x * lineP2.y) - (lineP2.x * lineP1.y);
+
+            return (float)(Math.Abs(A * point.x + B * point.y + C) / Math.Sqrt(A * A + B * B));
+        }
+
+        public void AnalyzeHeadDirection_Combined(List<Landmark> landmarks, int imageWidth, int imageHeight)
+        {
+            if (landmarks == null || landmarks.Count < 400) // 确保有足够的Face Mesh点
+            {
+                result.HeadYawDirection = HeadOrientationHorizontal.Unknown;
+                result.HeadPitchDirection = HeadOrientationVertical.Unknown;
+                return;
+            }
+
+            // --- 获取关键点 ---
+            Landmark noseTip = landmarks[NOSE_TIP];
+            Landmark chinCenter = landmarks[CHIN_CENTER];
+            Landmark leftEyeOuter = landmarks[LEFT_EYE_OUTER_CORNER];
+            Landmark rightEyeOuter = landmarks[RIGHT_EYE_OUTER_CORNER];
+            Landmark leftMouthCorner = landmarks[LEFT_MOUTH_CORNER];
+            Landmark rightMouthCorner = landmarks[RIGHT_MOUTH_CORNER];
+            Landmark leftEar = landmarks.Count > LEFT_EAR_TRAGION ? landmarks[LEFT_EAR_TRAGION] : null; // 检查索引是否存在
+            Landmark rightEar = landmarks.Count > RIGHT_EAR_TRAGION ? landmarks[RIGHT_EAR_TRAGION] : null;
+            Landmark foreheadCenter = landmarks[BETWEEN_EYEBROWS]; // 眉心
+
+            if (noseTip == null || chinCenter == null || leftEyeOuter == null || rightEyeOuter == null ||
+                leftMouthCorner == null || rightMouthCorner == null || foreheadCenter == null)
+            {
+                result.HeadYawDirection = HeadOrientationHorizontal.Unknown;
+                result.HeadPitchDirection = HeadOrientationVertical.Unknown;
+                return;
+            }
+
+            // --- 1. 水平朝向 (Yaw) ---
+            int yawScore = 0; // 正值表示向右看，负值表示向左看
+
+            // 1a. 对称性分析
+            // 中轴线 (鼻尖到下巴)
+            // (注意：更鲁棒的中轴线可能需要平均更多点，或者使用solvePnP得到的头部坐标系的Y轴投影)
+            if (noseTip != null && chinCenter != null)
+            {
+                float distLeftEyeToMidline = DistancePointToLine(leftEyeOuter, noseTip, chinCenter);
+                float distRightEyeToMidline = DistancePointToLine(rightEyeOuter, noseTip, chinCenter);
+                float distLeftMouthToMidline = DistancePointToLine(leftMouthCorner, noseTip, chinCenter);
+                float distRightMouthToMidline = DistancePointToLine(rightMouthCorner, noseTip, chinCenter);
+
+                // 转换为像素单位再比较，或者使用归一化距离的比例
+                // 这里假设距离是归一化单位，需要乘以图像宽度来得到像素感觉
+                distLeftEyeToMidline *= imageWidth;
+                distRightEyeToMidline *= imageWidth;
+                distLeftMouthToMidline *= imageWidth;
+                distRightMouthToMidline *= imageWidth;
+
+
+                // 眼睛对称性
+                float eyeDistDiffRatio = (distLeftEyeToMidline - distRightEyeToMidline) / ((distLeftEyeToMidline + distRightEyeToMidline) / 2f + 1e-6f);
+                if (eyeDistDiffRatio > SymmetryDifferenceRatioThreshold) yawScore++; // 左眼远，右眼近 => 头向右转
+                if (eyeDistDiffRatio < -SymmetryDifferenceRatioThreshold) yawScore--; // 左眼近，右眼远 => 头向左转
+
+                // 嘴巴对称性
+                float mouthDistDiffRatio = (distLeftMouthToMidline - distRightMouthToMidline) / ((distLeftMouthToMidline + distRightMouthToMidline) / 2f + 1e-6f);
+                if (mouthDistDiffRatio > SymmetryDifferenceRatioThreshold) yawScore++;
+                if (mouthDistDiffRatio < -SymmetryDifferenceRatioThreshold) yawScore--;
+            }
+
+
+            // 1b. 深度线索 (耳朵Z坐标)
+            if (leftEar != null && rightEar != null)
+            {
+                float earZDiff = leftEar.z - rightEar.z;
+                // z越小越近。如果 leftEar.z < rightEar.z (diff < 0), 说明左耳更近，头可能向右转
+                if (earZDiff > EarZDifferenceThreshold) yawScore--; // 左耳远，右耳近 => 头向左转
+                if (earZDiff < -EarZDifferenceThreshold) yawScore++; // 左耳近，右耳远 => 头向右转
+            }
+
+            // 综合Yaw分数判断
+            if (yawScore > 0) result.HeadYawDirection = HeadOrientationHorizontal.Right;
+            else if (yawScore < 0) result.HeadYawDirection = HeadOrientationHorizontal.Left;
+            else result.HeadYawDirection = HeadOrientationHorizontal.Forward;
+
+
+            // --- 2. 垂直朝向 (Pitch) ---
+            // 使用方法一的简化逻辑：鼻子相对于眼睛的Y位置
+            // 或者额头和下巴的Z坐标差异 (更依赖Z的稳定性)
+            int pitchScore = 0;
+
+            // 2a. 鼻子与眼睛的Y坐标比较 (Y轴向下为正)
+            float eyeCenterY = (leftEyeOuter.y + rightEyeOuter.y) / 2f;
+            float noseEyeYDiffNormalized = noseTip.y - eyeCenterY;
+
+            if (noseEyeYDiffNormalized > PitchNoseEyeYThresholdNormalized) pitchScore++; // 鼻子在眼下方 => 低头
+            if (noseEyeYDiffNormalized < -PitchNoseEyeYThresholdNormalized) pitchScore--; // 鼻子在眼上方 => 抬头
+
+            // 2b. 额头和下巴的Z坐标比较 (可选，如果Z坐标可靠)
+            if (foreheadCenter != null && chinCenter != null)
+            {
+                float foreheadChinZDiff = foreheadCenter.z - chinCenter.z;
+                // z越小越近。如果额头比下巴近 (forehead.z < chin.z, diff < 0) => 可能抬头
+                // 如果额头比下巴远 (forehead.z > chin.z, diff > 0) => 可能低头
+                if (foreheadChinZDiff > PitchForeheadChinZThreshold) pitchScore++; // 额头远，下巴近 => 低头
+                if (foreheadChinZDiff < -PitchForeheadChinZThreshold) pitchScore--; // 额头近，下巴远 => 抬头
+            }
+
+            // 综合Pitch分数判断
+            if (pitchScore > 0) result.HeadPitchDirection = HeadOrientationVertical.Down;
+            else if (pitchScore < 0) result.HeadPitchDirection = HeadOrientationVertical.Up;
+            else result.HeadPitchDirection = HeadOrientationVertical.Straight;
+
+        }
+
         #endregion
 
-     /*   #region 辅助算法
-        //带可见性检查的关键点获取
-        private Landmark GetValidLandmark(List<Landmark> landmarks, int index, float minVisibility = 0.5f)//设定最小可见性为0.5
-        {
-            if (landmarks == null || index >= landmarks.Count) return null;
-            var lm = landmarks[index];
-            return (lm.visibility ?? 0) >= minVisibility ? lm : null;//返回null或点本身
-        }
-        //姿势持续时间检查
-        private void CheckPostureDuration(ref DateTime? startTime, bool isBadPosture, string postureName) {
-            if (isBadPosture) { 
-                startTime??=DateTime.Now;
-            }
-        
-        }
+        /*   #region 辅助算法
+           //带可见性检查的关键点获取
+           private Landmark GetValidLandmark(List<Landmark> landmarks, int index, float minVisibility = 0.5f)//设定最小可见性为0.5
+           {
+               if (landmarks == null || index >= landmarks.Count) return null;
+               var lm = landmarks[index];
+               return (lm.visibility ?? 0) >= minVisibility ? lm : null;//返回null或点本身
+           }
+           //姿势持续时间检查
+           private void CheckPostureDuration(ref DateTime? startTime, bool isBadPosture, string postureName) {
+               if (isBadPosture) { 
+                   startTime??=DateTime.Now;
+               }
+
+           }
 
 
-        #endregion*/
+           #endregion*/
     }
 }
 

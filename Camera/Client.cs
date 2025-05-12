@@ -46,7 +46,7 @@ namespace Camera
 
         // 事件：当连接状态改变时触发
         public event EventHandler<bool> ConnectionStatusChanged;
-
+      //  public event EventHandler<HolisticData> ConnectionStatusChanged; //连接状态改变事件
         private bool isConnected = false;    //连接状态
         public bool IsConnected
         {
@@ -56,7 +56,8 @@ namespace Camera
                 if (isConnected != value)
                 {
                     isConnected = value;
-                    ConnectionStatusChanged?.Invoke(this, isConnected);
+                     ConnectionStatusChanged?.Invoke(this, isConnected);
+                    //ConnectionStatusChanged?.Invoke(this, _latestHolisticData); // 触发连接状态改变事件
                 }
             }
         }
@@ -211,7 +212,7 @@ namespace Camera
                     isPythonRunning = false;
                 }
                 }
-            else if (pythonProcess != null)   //进程存在但是咩有运行
+            else if (pythonProcess != null)   //进程存在但是没有运行
             {
                 pythonProcess.Dispose ();
                 pythonProcess = null; 
@@ -398,10 +399,10 @@ namespace Camera
             if (dataToProvide != null && dataToProvide.HasAnyLandmarks())
             {
                 //数据不为空，可以向外传递
-                if (EnableInvoke)
+               // if (EnableInvoke)
                 {
                     PeriodicDataUPdate?.Invoke(this, dataToProvide); // 触发事件，将数据传递给订阅者
-                    Console.WriteLine($"周期性更新数据: {dataToProvide}");
+                  //  Console.WriteLine($"周期性更新数据: {dataToProvide}");
                     PrintCount--;
                     if(PrintCount <=0)EnableInvoke = false;
                 }

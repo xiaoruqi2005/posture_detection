@@ -17,10 +17,13 @@
     <None Update="pythonScripts\Holistic_server.py">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Update="pythonScripts\pose_server.py">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+	  
+    <None Update="pythonScripts\PythonEnv\**\*">
+	 <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
+	  
   </ItemGroup>
+
 	
 
 </Project>
