@@ -6,12 +6,16 @@ using System.Text;
 using System.Threading.Tasks;
 using Common;
 using static Common.Constants;
+using System.Drawing;
+using static System.Net.Mime.MediaTypeNames;
 namespace Analysis
 {
     public class AnalysisResult
     {
+      //图形回传的暂存对象
+        public Bitmap FrameData = new Bitmap(DrawHeight,DrawWidth);
+
         // 1. 双肩水平度分析
-     
         public float? ShoulderTiltAngle { get; set; } // 肩膀连线与水平线的夹角 (度)
 
         public TiltSeverity ShoulderState;
@@ -121,6 +125,27 @@ namespace Analysis
             sb.Append("TimeStamp" + Timestamp + "\n");
             sb.Append("Formated TimeStamp" + Timestamp.ToString("yyyy-MM-dd HH:mm:ss") + "\n");
             sb.Append('}');
+            // 创建新线程避免阻塞控制台
+            // 遍历图像像素并转换为ASCII字符
+            if (FrameData != null)
+            {
+                try
+                {
+                    string path = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Desktop), "test_output.jpg");
+                    FrameData.Save(path, System.Drawing.Imaging.ImageFormat.Jpeg);
+                    Console.WriteLine("✔️ 图像保存成功: " + path);
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine("❌ 图像保存失败: " + ex.Message);
+                }
+            }
+            else
+            {
+                Console.WriteLine("❌ Bitmap 为 null，无法保存");
+            }
+
+
 
             return sb.ToString();
         }

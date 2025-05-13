@@ -10,6 +10,8 @@ using System.IO;
 using System.Text.Json;
 using System.Reflection.Metadata; // Required for Path.Combine and File.Exists
 using Common;
+using System.Drawing;
+
 namespace Camera
 {
     public class PoseData      //最初的简化版的PoseData
@@ -66,7 +68,7 @@ namespace Camera
         private Process pythonProcess;
         private bool isPythonRunning;
         private string pythongScriptPath; //脚本路径
-        private string pythonInterpreterPath; //python解释器路径 注意对应的环境要导入mediapipe
+        private string pythonInterpreterPath; //python解释器路径 
         private string pythonExexutable; //  //python可执行文件路径
 
         //添加姿态属性
@@ -76,6 +78,8 @@ namespace Camera
 
         public event EventHandler<HolisticData> PeriodicDataUPdate; // 当周期性事件触发时，提供最新的关键点数据
         public HolisticData LatestHolisticData => _latestHolisticData;
+
+        public event EventHandler<System.Drawing.Bitmap> ImageFrameReceived;
 
 
         private int waitTime = 10000;  //默认等待时间为 5 秒
@@ -343,7 +347,47 @@ namespace Camera
                     {
                         HolisticData holisticData = JsonSerializer.Deserialize<HolisticData>(jsonString);
                         _latestHolisticData = holisticData; // 更新最新数据
-                       // PoseDataReceived?.Invoke(this, holisticData); // 触发事件，将数据传递给订阅者
+                                                            // PoseDataReceived?.Invoke(this, holisticData); // 触发事件，将数据传递给订阅者
+                                                            // 接收图像帧
+                        byte[] imageBytes = await ReceiveImageAsync(stream, cts.Token);
+                        if (imageBytes != null)
+                        {
+                            try
+                            {
+                                using (var ms = new MemoryStream(imageBytes))
+                                {
+                                    var bmp = new System.Drawing.Bitmap(ms);
+                                    ImageFrameReceived?.Invoke(this, bmp); // 触发事件
+                                }
+                            }
+                            catch (Exception ex)
+                            {
+                                Console.WriteLine($"图像解码失败：{ex.Message}");
+                            }
+                        }
+                        /*
+                                                try
+                                                {
+                                                    byte[] imageBytes = await ReceiveImageAsync(stream, cts.Token);
+                                                    if (imageBytes != null)
+                                                    {
+                                                        using (var ms = new MemoryStream(imageBytes))
+                                                        using (var temp = new Bitmap(ms))
+                                                        using (var bmp = new Bitmap(temp)) // 避免 GDI+ 锁住流问题
+                                                        {
+                                                            string path = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Desktop), "test_output.jpg");
+                                                            if (File.Exists(path)) File.Delete(path); // 防止文件锁死
+                                                            bmp.Save(path, System.Drawing.Imaging.ImageFormat.Jpeg);
+                                                            Console.WriteLine("✔️ 图像已成功保存到: " + path);
+                                                        }
+                                                    }
+                                                }
+                                                catch (Exception ex)
+                                                {
+                                                    Console.WriteLine("❌ 保存图像失败: " + ex.Message);
+                                                }*/
+
+
                     }
                     catch (JsonException ex)
                     {
@@ -368,6 +412,31 @@ namespace Camera
                 Disconnect();
             }
 
+        }
+
+        public  async Task<byte[]> ReceiveImageAsync(NetworkStream stream, CancellationToken token)
+        {
+            byte[] lengthBuffer = new byte[4];
+            int totalRead = 0;
+            while (totalRead < 4)
+            {
+                int read = await stream.ReadAsync(lengthBuffer, totalRead, 4 - totalRead, token);
+                if (read == 0) return null;
+                totalRead += read;
+            }
+            if (BitConverter.IsLittleEndian)
+                Array.Reverse(lengthBuffer);
+            int length = BitConverter.ToInt32(lengthBuffer, 0);
+
+            byte[] imageBuffer = new byte[length];
+            totalRead = 0;
+            while (totalRead < length)
+            {
+                int read = await stream.ReadAsync(imageBuffer, totalRead, length - totalRead, token);
+                if (read == 0) return null;
+                totalRead += read;
+            }
+            return imageBuffer;
         }
 
         public void Disconnect()

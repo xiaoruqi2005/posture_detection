@@ -43,6 +43,12 @@ namespace Common
         public const float HeadPitchThreshold = 30; // 头部竖直朝向的阈值
         public const float PitchNoseEyeYThresholdNormalized = 10;
         public const float PitchForeheadChinZThreshold = 100;
+
+        //绘图尺寸
+        public const int DrawWidth = 640; // 绘图宽度
+        public const int DrawHeight = 480; // 绘图高度
+
+
         public enum TiltSeverity
         {
             /// <summary>
