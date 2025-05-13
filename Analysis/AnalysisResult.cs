@@ -127,7 +127,7 @@ namespace Analysis
             sb.Append('}');
             // 创建新线程避免阻塞控制台
             // 遍历图像像素并转换为ASCII字符
-            if (FrameData != null)
+            /*if (FrameData != null)
             {
                 try
                 {
@@ -144,7 +144,7 @@ namespace Analysis
             {
                 Console.WriteLine("❌ Bitmap 为 null，无法保存");
             }
-
+*/
 
 
             return sb.ToString();
