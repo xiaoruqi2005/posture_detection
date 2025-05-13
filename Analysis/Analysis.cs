@@ -114,7 +114,7 @@ namespace Analysis
             Console.WriteLine("所有资源被释放");
             GC.SuppressFinalize(this);
         }
-        private void PoseClient_PeriodicDataUPdate(object? sender, HolisticData data) //这个函数中书写分析逻辑，每隔 33 ms 会触发一次
+        private void PoseClient_PeriodicDataUPdate(object? sender, HolisticData data) //这个函数中书写分析逻辑，每隔 500 ms 会触发一次
         {
             Console.WriteLine("成功进入分析逻辑");
             //  throw new NotImplementedException();

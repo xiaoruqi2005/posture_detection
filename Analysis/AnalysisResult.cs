@@ -18,7 +18,7 @@ namespace Analysis
         // 1. 双肩水平度分析
         public float? ShoulderTiltAngle { get; set; } // 肩膀连线与水平线的夹角 (度)
 
-        public Constants.TiltSeverity ShoulderState;
+        public TiltSeverity ShoulderState;
        
 
         // 2. 双眼水平度分析
