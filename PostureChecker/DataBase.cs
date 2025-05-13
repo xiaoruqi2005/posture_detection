@@ -3,40 +3,41 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+
 using MySql.Data.MySqlClient;
 
-namespace PostureChecker
-{
-    public class DataBase
-    {
-        public void MySqlOp()
-        {
-            string conStr = "Server=localhost;Database=MyData;User=root;Password=@Ab123456YJC;";
-            MySqlConnection conn = new MySqlConnection(conStr);
-            MySqlCommand cmd = null;
-            try
-            {
-                conn.Open();
-                cmd = conn.CreateCommand();
-                cmd.CommandText = "SELECT * FROM user_table";
-                MySqlDataReader reader = cmd.ExecuteReader();
-                while (reader.Read())
-                {
-                    Console.WriteLine(reader["id"] + " " + reader["name"]);
-                }
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine(ex.Message);
-            }
-            finally
-            {
-                if (cmd != null)
-                    cmd.Dispose();
-                if (conn != null)
-                    conn.Close();
-            }
-        }
-    }
+//namespace posturechecker
+//{
+//    public class database
+//    {
+//        public void mysqlop()
+//        {
+//            string constr = "server=localhost;database=mydata;user=root;password=@ab123456yjc;";
+//            mysqlconnection conn = new mysqlconnection(constr);
+//            mysqlcommand cmd = null;
+//            try
+//            {
+//                conn.open();
+//                cmd = conn.createcommand();
+//                cmd.commandtext = "select * from user_table";
+//                mysqldatareader reader = cmd.executereader();
+//                while (reader.read())
+//                {
+//                    console.writeline(reader["id"] + " " + reader["name"]);
+//                }
+//            }
+//            catch (exception ex)
+//            {
+//                console.writeline(ex.message);
+//            }
+//            finally
+//            {
+//                if (cmd != null)
+//                    cmd.dispose();
+//                if (conn != null)
+//                    conn.close();
+//            }
+//        }
+//    }
 
-}
+//}
