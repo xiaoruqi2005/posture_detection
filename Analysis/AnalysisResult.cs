@@ -12,9 +12,10 @@ namespace Analysis
 {
     public class AnalysisResult
     {
-        // 1. 双肩水平度分析
+      //图形回传的暂存对象
         public Bitmap FrameData = new Bitmap(DrawHeight,DrawWidth);
-     
+
+        // 1. 双肩水平度分析
         public float? ShoulderTiltAngle { get; set; } // 肩膀连线与水平线的夹角 (度)
 
         public Constants.TiltSeverity ShoulderState;
