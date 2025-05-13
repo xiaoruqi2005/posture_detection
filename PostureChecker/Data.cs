@@ -38,5 +38,33 @@ namespace PostureChecker
         {
 
         }
+
+        public void Table()
+        {
+            dataGridView1.Rows.Clear();//清空旧数据
+            DataBase da = new DataBase();
+            string sql = "select * from data_table;";
+            string a0, a1, a2, a3, a4, a5, a6;
+            IDataReader dc = da.read(sql);
+            while (dc.Read())
+            {
+                a0 = dc[6].ToString();
+                a1 = dc[0].ToString();
+                a2 = dc[1].ToString();
+                a3 = dc[2].ToString();
+                a4 = dc[3].ToString();
+                a5 = dc[4].ToString();
+                a6 = dc[5].ToString();
+                string[] table = { a0, a1, a2, a3, a4, a5, a6 };
+                dataGridView1.Rows.Add(table);
+            }
+            dc.Close();
+            da.Dataclose();
+        }
+
+        private void Data_Load(object sender, EventArgs e)
+        {
+            Table();
+        }
     }
 }
