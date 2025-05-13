@@ -7,9 +7,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Compile Remove="pythonScripts\PythonEnv\python\**" />
-    <EmbeddedResource Remove="pythonScripts\PythonEnv\python\**" />
-    <None Remove="pythonScripts\PythonEnv\python\**" />
+    <PackageReference Include="MySql.Data" Version="9.3.0" />
   </ItemGroup>
 
   <ItemGroup>

@@ -5,7 +5,7 @@ namespace PostureChecker
         public Form1()
         {
             InitializeComponent();
-            this.Text = "ÌåÌ¬¼ì²âÖúÊÖ";
+            this.Text = "ï¿½ï¿½Ì¬ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½";
         }
 
         private void textBox1_TextChanged(object sender, EventArgs e)

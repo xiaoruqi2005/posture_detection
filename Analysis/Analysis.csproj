@@ -7,7 +7,16 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="System.Drawing.Common" Version="9.0.4" />
+	  <ItemGroup>
+		  <PackageReference Include="MySql.Data" Version="9.3.0" />
+	  </ItemGroup>
+
+	  <ItemGroup>
+		  <PackageReference Include="System.Drawing.Common" Version="9.0.4" />
+	  </ItemGroup>
+
+	  <ItemGroup>
+    <PackageReference Include="MySql.Data" Version="9.3.0" />
   </ItemGroup>
 
   <ItemGroup>
