@@ -10,14 +10,14 @@ using System.Windows.Forms;
 
 namespace PostureChecker
 {
-    public partial class Form2 : Form
+    public partial class cameraVideo : Form
     {
-        Form1 f1;
+      //Menu f1;
         //public Form1 f2;
-        public Form2(Form1 form1)
+        public cameraVideo()
         {
             InitializeComponent();
-            f1 = form1;
+            //f1 = form1;
             //f1 = new Form1();
         }
 
@@ -34,12 +34,28 @@ namespace PostureChecker
         private void button1_Click(object sender, EventArgs e)
         {
             this.Close();
-            f1.Show();
+            //f1.Show();
         }
 
         private void button3_Click(object sender, EventArgs e)
         {
-            f1.Show();
+            //f1.Show();
+        }
+
+        private void 主菜单ToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            Menu menu = new Menu();
+            this.Hide();
+            menu.ShowDialog();
+            this.Show();
+        }
+
+        private void 查询数据ToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            Data data = new Data();
+            this.Hide();
+            data.ShowDialog();
+            this.Show();
         }
     }
 }
