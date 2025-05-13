@@ -102,6 +102,19 @@ def send_message(sock, message_string):
         return False
     return True
 
+#将图片编码为 JPEG并通过socket发送（带长度前缀）
+def send_image(sock, image):
+    """将图像编码为JPEG并通过socket发送（带长度前缀）"""
+    try:
+        _, buffer = cv2.imencode('.jpg', image)
+        image_bytes = buffer.tobytes()
+        length_prefix = struct.pack('>I', len(image_bytes))
+        sock.sendall(length_prefix + image_bytes)
+    except Exception as e:
+        print(f"Error sending image: {e}")
+        return False
+    return True
+
 
 # --- 主程序 ---
 def main():
@@ -195,7 +208,8 @@ def main():
                     print(f"Error accepting new connection: {e}")
                     # 如果接受新连接也失败，可能服务器需要重启或退出
                     break # 退出主循环
-
+            if not send_image(conn,image):
+                print("Failed to send image.")
             #可选：在 Python 端显示视频 (可能会影响性能和帧率)
             # 在原始图像上绘制关键点
             # image = cv2.cvtColor(image_rgb, cv2.COLOR_RGB2BGR) # 已经在上面恢复可写并可能转换回 BGR 了

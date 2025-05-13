@@ -61,7 +61,13 @@ namespace Analysis
             poseClient.PeriodicDataUPdate += PoseClient_PeriodicDataUPdate;
             poseClient.SetUpdateInterval(Constants.InterValMs);
             poseClient.ConnectionStatusChanged += PoseClient_ConnectionStatusChanged;
+            poseClient.ImageFrameReceived += PoseClient_ImageFrameReceived;
          //   poseClient.ConnectionStatusChanged += PoseClient_PeriodicDataUPdate;
+        }
+
+        private void PoseClient_ImageFrameReceived(object? sender, System.Drawing.Bitmap e)
+        {
+            result.FrameData = e;
         }
 
         public  async Task StartAsync()
