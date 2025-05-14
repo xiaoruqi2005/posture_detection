@@ -1,9 +1,11 @@
-﻿using System;
+﻿using Analysis;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
 using System.Drawing;
 using System.Linq;
+using System.Security.Cryptography.X509Certificates;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
@@ -38,7 +40,15 @@ namespace PostureChecker
         {
 
         }
-
+        //public void recieve()
+        //{
+        //    dataGridView1.Rows.Clear();//清空旧数据
+        //    var result = Analysis.Posenalyzer.result;
+        //    string sql = "insert into data_table (sa, ss, ea, es, hs, heads, times,ft) " +
+        //        "values ('" + result.ShoulderTiltAngle + "', '" + result.ShoulderState + "', '" + result.EyeTiltAngle + "', '" + result.EyeState + "', '" + result.HunchbackState + "', '" + result.HeadTiltAngle + "', '" + result.Timestamp + "','" +result.Timestamp + "');";
+        //    DataBase da = new DataBase();
+        //    da.InsertData(sql);
+        //}
         public void Table()
         {
             dataGridView1.Rows.Clear();//清空旧数据

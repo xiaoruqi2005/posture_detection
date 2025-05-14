@@ -8,6 +8,7 @@ using Common;
 using static Common.Constants;
 using System.Drawing;
 using static System.Net.Mime.MediaTypeNames;
+
 namespace Analysis
 {
     public class AnalysisResult
@@ -149,5 +150,14 @@ namespace Analysis
 
             return sb.ToString();
         }
+
+        //public void recieve()
+        //{
+        //    dataGridView1.Rows.Clear();//清空旧数据
+        //    string sql = "insert into data_table (sa, ss, ea, es, hs, heads, times,ft) " +
+        //        "values ('" + ShoulderTiltAngle + "', '" + ShoulderState + "', '" + EyeTiltAngle + "', '" + EyeState + "', '" + HunchbackState + "', '" + HeadTiltAngle + "', '" + Timestamp + "','" + Timestamp + "');";
+        //    DataBase da = new DataBase();
+        //    da.InsertData(sql);
+        //}
     }
 }

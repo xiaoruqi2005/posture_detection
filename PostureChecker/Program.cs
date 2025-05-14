@@ -1,3 +1,10 @@
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+using Analysis;
+
 namespace PostureChecker
 {
     internal static class Program
@@ -14,8 +21,10 @@ namespace PostureChecker
             //data.MySqlOp();
             ApplicationConfiguration.Initialize();
 
-            //����������
+            //Menu
+            //Application.Run(new Menu());
             Application.Run(new Menu());
+
         }
     }
 }

@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Analysis;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -33,6 +34,17 @@ namespace PostureChecker
         public void Dataclose()//关闭
         {
             sc.Close();
+        }
+        public void InsertData(string sql)//插入
+        {
+            //Application.Run(new Data());
+            //Console.WriteLine("--- 开始进行测试  ---");
+            //Posenalyzer ana = new Posenalyzer();
+            //ana.StartAsync().Wait();
+
+            MySqlCommand cmd = command(sql);
+            cmd.ExecuteNonQuery();
+            cmd.Dispose();
         }
         //public void MySqlOp()
         //{
