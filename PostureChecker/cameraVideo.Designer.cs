@@ -10,7 +10,7 @@ using System.Windows.Forms;
 
 namespace PostureChecker
 {
-    partial class Form2
+    partial class cameraVideo
     {
 //        private PictureBox pictureBox;
 //        private SubscriberSocket subscriber;
@@ -62,9 +62,10 @@ namespace PostureChecker
         private void InitializeComponent()
         {
             button2 = new Button();
-            label1 = new Label();
-            button1 = new Button();
-            button3 = new Button();
+            menuStrip1 = new MenuStrip();
+            主菜单ToolStripMenuItem = new ToolStripMenuItem();
+            查询数据ToolStripMenuItem = new ToolStripMenuItem();
+            menuStrip1.SuspendLayout();
             SuspendLayout();
             // 
             // button2
@@ -76,59 +77,54 @@ namespace PostureChecker
             button2.Text = "button2";
             button2.UseVisualStyleBackColor = true;
             // 
-            // label1
-            //
-            
-            label1.BackColor = SystemColors.ButtonFace;
-            label1.BorderStyle = BorderStyle.Fixed3D;
-            label1.Location = new Point(-2, -1);
-            label1.Name = "label1";
-            label1.Size = new Size(1086, 45);
-            label1.TabIndex = 4;
-            label1.Click += label1_Click;
+            // menuStrip1
             // 
-            // button1
+            menuStrip1.ImageScalingSize = new Size(24, 24);
+            menuStrip1.Items.AddRange(new ToolStripItem[] { 主菜单ToolStripMenuItem, 查询数据ToolStripMenuItem });
+            menuStrip1.Location = new Point(0, 0);
+            menuStrip1.Name = "menuStrip1";
+            menuStrip1.Size = new Size(1083, 32);
+            menuStrip1.TabIndex = 2;
+            menuStrip1.Text = "menuStrip1";
             // 
-            button1.Location = new Point(32, 76);
-            button1.Name = "button1";
-            button1.Size = new Size(112, 34);
-            button1.TabIndex = 5;
-            button1.Text = "返回\r\n";
-            button1.UseVisualStyleBackColor = true;
-            button1.Click += button1_Click;
+            // 主菜单ToolStripMenuItem
             // 
-            // button3
+            主菜单ToolStripMenuItem.Name = "主菜单ToolStripMenuItem";
+            主菜单ToolStripMenuItem.Size = new Size(80, 28);
+            主菜单ToolStripMenuItem.Text = "主菜单";
+            主菜单ToolStripMenuItem.Click += 主菜单ToolStripMenuItem_Click;
             // 
-            button3.Location = new Point(32, 146);
-            button3.Name = "button3";
-            button3.Size = new Size(112, 34);
-            button3.TabIndex = 6;
-            button3.Text = "主菜单";
-            button3.UseVisualStyleBackColor = true;
-            button3.Click += button3_Click;
+            // 查询数据ToolStripMenuItem
             // 
-            // Form2
+            查询数据ToolStripMenuItem.Name = "查询数据ToolStripMenuItem";
+            查询数据ToolStripMenuItem.Size = new Size(98, 28);
+            查询数据ToolStripMenuItem.Text = "查询数据";
+            查询数据ToolStripMenuItem.Click += 查询数据ToolStripMenuItem_Click;
+            // 
+            // cameraVideo
             // 
             AutoScaleDimensions = new SizeF(11F, 24F);
             AutoScaleMode = AutoScaleMode.Font;
             BackColor = SystemColors.ButtonHighlight;
             ClientSize = new Size(1083, 633);
-            Controls.Add(button3);
-            Controls.Add(button1);
-            Controls.Add(label1);
             Controls.Add(button2);
+            Controls.Add(menuStrip1);
             ForeColor = Color.Black;
             FormBorderStyle = FormBorderStyle.FixedSingle;
-            Name = "Form2";
+            MainMenuStrip = menuStrip1;
+            Name = "cameraVideo";
             Text = "Form2";
             Load += Form2_Load;
+            menuStrip1.ResumeLayout(false);
+            menuStrip1.PerformLayout();
             ResumeLayout(false);
+            PerformLayout();
         }
 
         #endregion
         private Button button2;
-        private Label label1;
-        private Button button1;
-        private Button button3;
+        private MenuStrip menuStrip1;
+        private ToolStripMenuItem 主菜单ToolStripMenuItem;
+        private ToolStripMenuItem 查询数据ToolStripMenuItem;
     }
 }

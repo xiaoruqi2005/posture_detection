@@ -1,6 +1,6 @@
 ﻿namespace PostureChecker
 {
-    partial class Form1
+    partial class Menu
     {
         /// <summary>
         ///  Required designer variable.
@@ -37,9 +37,10 @@
             // textBox1
             // 
             textBox1.Font = new Font("华文彩云", 25.8749962F, FontStyle.Bold, GraphicsUnit.Point, 134);
-            textBox1.Location = new Point(157, 79);
+            textBox1.Location = new Point(123, 61);
+            textBox1.Margin = new Padding(2, 2, 2, 2);
             textBox1.Name = "textBox1";
-            textBox1.Size = new Size(460, 79);
+            textBox1.Size = new Size(362, 61);
             textBox1.TabIndex = 0;
             textBox1.Text = "体态监测助手";
             textBox1.TextAlign = HorizontalAlignment.Center;
@@ -47,19 +48,21 @@
             // 
             // button1
             // 
-            button1.Location = new Point(283, 194);
+            button1.Location = new Point(222, 150);
+            button1.Margin = new Padding(2, 2, 2, 2);
             button1.Name = "button1";
-            button1.Size = new Size(200, 46);
+            button1.Size = new Size(157, 36);
             button1.TabIndex = 1;
             button1.Text = "开始监测";
             button1.UseVisualStyleBackColor = true;
-            button1.Click += this.button1_Click;
+            button1.Click += button1_Click;
             // 
             // button2
             // 
-            button2.Location = new Point(283, 270);
+            button2.Location = new Point(222, 209);
+            button2.Margin = new Padding(2, 2, 2, 2);
             button2.Name = "button2";
-            button2.Size = new Size(200, 46);
+            button2.Size = new Size(157, 36);
             button2.TabIndex = 2;
             button2.Text = "记录查询";
             button2.UseVisualStyleBackColor = true;
@@ -67,24 +70,27 @@
             // 
             // button3
             // 
-            button3.Location = new Point(283, 345);
+            button3.Location = new Point(222, 267);
+            button3.Margin = new Padding(2, 2, 2, 2);
             button3.Name = "button3";
-            button3.Size = new Size(200, 46);
+            button3.Size = new Size(157, 36);
             button3.TabIndex = 3;
             button3.Text = "设置";
             button3.UseVisualStyleBackColor = true;
             // 
-            // Form1
+            // Menu
             // 
-            AutoScaleDimensions = new SizeF(14F, 31F);
+            AutoScaleDimensions = new SizeF(11F, 24F);
             AutoScaleMode = AutoScaleMode.Font;
-            ClientSize = new Size(793, 450);
+            ClientSize = new Size(623, 348);
             Controls.Add(button3);
             Controls.Add(button2);
             Controls.Add(button1);
             Controls.Add(textBox1);
-            Name = "Form1";
+            Margin = new Padding(2, 2, 2, 2);
+            Name = "Menu";
             Text = "Form1";
+            Load += Menu_Load;
             ResumeLayout(false);
             PerformLayout();
         }

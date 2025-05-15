@@ -20,8 +20,11 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Camera\Camera.csproj" />
-    <ProjectReference Include="..\Common\Common.csproj" />
+	  <ProjectReference Include="..\Camera\Camera.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+	  <ProjectReference Include="..\Common\Common.csproj" />
   </ItemGroup>
 
 </Project>
