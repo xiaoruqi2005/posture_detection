@@ -149,6 +149,8 @@ namespace Analysis
         {
             result.Timestamp = DateTime.Now;
         }
+
+        //1.两肩两眼-------------------
         //两肩水平检测
         private void CheckShoulder(Landmark ls, Landmark rs )
         {
@@ -188,24 +190,35 @@ namespace Analysis
 
             // 根据角度判断倾斜程度并更新 result.ShoulderState
             float absAngle = Math.Abs(calculatedAngleDegrees);
+            absAngle = Math.Abs(180 - absAngle);
 
-
-            if (absAngle <= Constants.MaxShoulderHorizontalDeg)
+            if (absAngle <= Constants.SlightShoulderHorizontalDeg)
             {
+                //认为两肩水平
                 result.ShoulderState = TiltSeverity.Level;
             }
-            // calculatedAngleDegrees > Constants.MaxHorizontalDeg: 右肩低于左肩 (即左肩相对偏高)
-            else if (calculatedAngleDegrees > Constants.MaxShoulderHorizontalDeg)
+            else if (calculatedAngleDegrees > 0 && ((180 - calculatedAngleDegrees) > Constants.MaxShoulderHorizontalDeg))
             {
-                // 只要角度大于 MaxHorizontalDeg，就认为是左肩偏高
+                // 左肩显著高
+                result.ShoulderState = TiltSeverity.LeftObviouslyHigh;return;
+            }
+            else if (calculatedAngleDegrees < 0 && ((180 + calculatedAngleDegrees) > Constants.MaxShoulderHorizontalDeg))
+            {
+                //右肩显著高
+                result.ShoulderState = TiltSeverity.RightObviouslyHigh;return;
+            }
+
+            else if (calculatedAngleDegrees >0&&((180- calculatedAngleDegrees)>Constants.SlightShoulderHorizontalDeg))
+            {
+                // 左肩略微高
                 result.ShoulderState = TiltSeverity.LeftSlightlyHigh;
             }
-            // calculatedAngleDegrees < -Constants.MaxHorizontalDeg: 右肩高于左肩 (即右肩相对偏高)
-            else if (calculatedAngleDegrees < -Constants.MaxShoulderHorizontalDeg)
+            else if (calculatedAngleDegrees <0&&((180 + calculatedAngleDegrees)>Constants.SlightShoulderHorizontalDeg))
             {
-                // 只要角度的绝对值大于 MaxHorizontalDeg (且角度为负)，就认为是右肩偏高
+                // 右肩略微高
                 result.ShoulderState = TiltSeverity.RightSlightlyHigh;
             }
+            
             else
             {
                 //这里不会用到，故缺省
@@ -214,7 +227,6 @@ namespace Analysis
         }
 
         //两眼水平
-
         private void CheckEye(Landmark le, Landmark re)
         {
             if (le == null || re == null)
@@ -252,26 +264,37 @@ namespace Analysis
 
             // 根据角度判断倾斜程度并更新 result.EyeState
             float absAngle = Math.Abs(calculatedAngleDegrees);
+            absAngle = Math.Abs(180 - absAngle);
 
-            if (absAngle <= Constants.MaxEyeHorizontalDeg) // 使用眼睛特定的阈值
+            if (absAngle <= Constants.SlightEyeHorizontalDeg) // 使用眼睛特定的阈值
             {
                 result.EyeState = Constants.TiltSeverity.Level;
             }
-            // calculatedAngleDegrees > Constants.MaxEyeHorizontalDeg: 右眼低于左眼 => 左眼更高
-            else if (calculatedAngleDegrees > Constants.MaxEyeHorizontalDeg)
+            else if (calculatedAngleDegrees > 0 && ((180 - calculatedAngleDegrees) > Constants.MaxEyeHorizontalDeg))
+            {
+                result.EyeState = Constants.TiltSeverity.LeftObviouslyHigh;return;
+            }
+            else if (calculatedAngleDegrees < 0 && ((180 + calculatedAngleDegrees) > Constants.MaxEyeHorizontalDeg))
+            {
+                result.EyeState = Constants.TiltSeverity.RightObviouslyHigh;return;
+            }
+            // 右眼低于左眼 => 左眼更高
+            else if (calculatedAngleDegrees > 0 && ((180 - calculatedAngleDegrees) > Constants.SlightEyeHorizontalDeg))
             {
                 result.EyeState = Constants.TiltSeverity.LeftSlightlyHigh;
             }
-            // calculatedAngleDegrees < -Constants.MaxEyeHorizontalDeg: 右眼高于左眼 => 右眼更高
-            else if (calculatedAngleDegrees < -Constants.MaxEyeHorizontalDeg)
+            // 右眼高于左眼 => 右眼更高
+            else if (calculatedAngleDegrees < 0 && ((180 + calculatedAngleDegrees)>Constants.SlightEyeHorizontalDeg))
             {
                 result.EyeState = Constants.TiltSeverity.RightSlightlyHigh;
             }
+          
             else {
               //缺省    
             }
         }
-        //驼背检测
+
+        //2.驼背检测---------------------
         public void CheckHunchback(Landmark ls, Landmark rs, Landmark nos)
         {
             if (ls == null || rs == null || nos == null)
@@ -310,8 +333,7 @@ namespace Analysis
             
         }
 
-
-        //头部倾斜
+        //3.头部倾斜---------------------
         public void CheckHead(Landmark le ,Landmark re,Landmark nos)
         {
             if (le == null || re == null)
@@ -344,9 +366,35 @@ namespace Analysis
             double angleRadians = Math.Atan2(deltaY, deltaX);
 
             calculatedAngleDegrees = (float)(angleRadians * 180.0 / Math.PI);
-            result.HeadTiltAngle = calculatedAngleDegrees;
+            float tmpAngleDegrees;
+            tmpAngleDegrees = (180 - Math.Abs(calculatedAngleDegrees)) * (Math.Abs(calculatedAngleDegrees) / calculatedAngleDegrees);
+            result.HeadTiltAngle = tmpAngleDegrees;
 
             float absAngle = Math.Abs(calculatedAngleDegrees);
+            absAngle = Math.Abs(180 - absAngle);
+
+            if (absAngle <= Constants.SlightEyeHorizontalDeg) // 使用眼睛特定的阈值
+            {
+                result.EyeState = Constants.TiltSeverity.Level;
+            }
+            else if (calculatedAngleDegrees > 0 && ((180 - calculatedAngleDegrees) > Constants.MaxEyeHorizontalDeg))
+            {
+                result.EyeState = Constants.TiltSeverity.LeftObviouslyHigh; return;
+            }
+            else if (calculatedAngleDegrees < 0 && ((180 + calculatedAngleDegrees) > Constants.MaxEyeHorizontalDeg))
+            {
+                result.EyeState = Constants.TiltSeverity.RightObviouslyHigh; return;
+            }
+            // 右眼低于左眼 => 左眼更高
+            else if (calculatedAngleDegrees > 0 && ((180 - calculatedAngleDegrees) > Constants.SlightEyeHorizontalDeg))
+            {
+                result.EyeState = Constants.TiltSeverity.LeftSlightlyHigh;
+            }
+            // 右眼高于左眼 => 右眼更高
+            else if (calculatedAngleDegrees < 0 && ((180 + calculatedAngleDegrees) > Constants.SlightEyeHorizontalDeg))
+            {
+                result.EyeState = Constants.TiltSeverity.RightSlightlyHigh;
+            }
 
             if (absAngle <= Constants.MaxHeadUprightAngle)
             {
@@ -379,11 +427,17 @@ namespace Analysis
             }
         }
 
-        //头部朝向检测
+        //4.头部朝向检测------------------
               /// <summary>
               /// 计算点到一条由两点定义的直线的垂直距离 (2D)。
               /// lineP1, lineP2 定义直线，point 是要计算距离的点。
               /// </summary>
+              /// 
+
+
+
+
+
     private float DistancePointToLine(Landmark point, Landmark lineP1, Landmark lineP2)
         {
             if (point == null || lineP1 == null || lineP2 == null) return float.MaxValue;

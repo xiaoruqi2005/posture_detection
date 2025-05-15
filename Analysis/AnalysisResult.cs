@@ -12,8 +12,8 @@ namespace Analysis
 {
     public class AnalysisResult
     {
-      //图形回传的暂存对象
-        public Bitmap FrameData = new Bitmap(DrawHeight,DrawWidth);
+        //图形回传的暂存对象
+        public Bitmap FrameData = new Bitmap(DrawHeight, DrawWidth);
 
         // 1. 双肩水平度分析
         public float? ShoulderTiltAngle { get; set; } // 肩膀连线与水平线的夹角 (度)
@@ -122,6 +122,8 @@ namespace Analysis
             sb.Append("EyeState: " + EyeState + "\n");
             sb.Append("HunchbackState: " + HunchbackState + "\n");
             sb.Append("HeadTiltAngle: " + HeadTiltAngle + "\n");
+            sb.Append("HeadTiltState: " + HeadTiltState + "\n");
+
             sb.Append("TimeStamp" + Timestamp + "\n");
             sb.Append("Formated TimeStamp" + Timestamp.ToString("yyyy-MM-dd HH:mm:ss") + "\n");
             sb.Append('}');
@@ -144,9 +146,9 @@ namespace Analysis
             {
                 Console.WriteLine("❌ Bitmap 为 null，无法保存");
             }
-*/
 
 
+            */
             return sb.ToString();
         }
     }

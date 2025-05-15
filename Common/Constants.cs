@@ -15,19 +15,26 @@ namespace Common
         //public static readonly AnalysisResult result;//存储结果的静态对象
 
 
-        //各种姿势的阈值常量
-        //两肩两眼水平阈值 
-        public const float MaxShoulderHorizontalDeg = 5f;         //水平方向最大允许角度 5°
-        public const float MaxEyeHorizontalDeg = 5f;             //眼睛水平度最大允许角度 5°
-        public const float MaxVerticalDeg  =  5f;              //竖直方向最大允许角度 5°
+        # region 各种姿势的阈值常量
+        //1.两肩两眼水平阈值----------------------
 
-        //驼背阈值
-        public const float NeckForwardThresholdZ = -50f;      // 颈部前倾阈值（z轴差异） 为负值
-        public const float NectForwardThresholdZObvious = -100f;      // 颈部前倾阈值（z轴差异） 严重驼背的阈值
+        //轻微偏离
+        public const float SlightShoulderHorizontalDeg = 4f;         //两肩轻微偏离允许角度 5°
+        public const float SlightEyeHorizontalDeg =3.5f;             //眼睛水平度轻微偏离允许角度 5°                                                        
+        public const float SlightVerticalDeg = 5f;              //头部倾斜的轻微偏离允许角度 5°
+        //显著偏离
+        public const float MaxShoulderHorizontalDeg = 6f;         //两肩显著偏离最大允许角度 10°
+        public const float MaxEyeHorizontalDeg = 7f;             //眼睛水平度显著偏离最大允许角度 10°
+        public const float MaxVerticalDeg =7.5f;              //头部倾斜的显著偏离最大允许角度 10°
 
-        //头部倾斜阈值
-        public const float MaxHeadUprightAngle = 5f;      // 头部正直的最大允许角度偏差
-        public const float SlightHeadTiltThreshold = 15f; // 轻微头部倾斜的阈值下限 (应 > MaxHeadUprightAngle)
+        //2.驼背阈值-----------------------------
+
+        public const float NeckForwardThresholdZ = -75f;      //轻微驼背阈值   （z轴差异）为负值
+        public const float NectForwardThresholdZObvious = -110f;      //严重驼背阈值  （z轴差异） 为负值
+
+        //3.头部倾斜阈值--------------------------
+        public const float MaxHeadUprightAngle = 4f;      // 头部正直的最大允许角度偏差
+        public const float SlightHeadTiltThreshold = 7f; // 轻微头部倾斜的阈值下限 (应 > MaxHeadUprightAngle)
 
         //public static float HunchbackAngleThreshold = 10f; // 驼背角度阈值
         //public static float SpineCurvatureThreshold = 0.2f; // 脊柱弯曲阈值
@@ -36,7 +43,7 @@ namespace Common
         public const int Height = 1200;
         public const int Depth = 100;   //用于描述深度的相对值
 
-        //头部朝向的阈值
+        //4.头部朝向的阈值--------------------------
         public const float EarZDifferenceThreshold = 100; // 耳朵z轴差异阈值
         public const float SymmetryDifferenceRatioThreshold = 100; // 耳朵对称差异比率阈值
         public const float HeadYawThreshold = 30; // 头部水平朝向的阈值
@@ -44,12 +51,15 @@ namespace Common
         public const float PitchNoseEyeYThresholdNormalized = 10;
         public const float PitchForeheadChinZThreshold = 100;
 
+        #endregion
+
+
         //绘图尺寸
         public const int DrawWidth = 640; // 绘图宽度
         public const int DrawHeight = 480; // 绘图高度
 
 
-        public enum TiltSeverity
+        public enum TiltSeverity//1.两肩两眼倾斜的 枚举类型
         {
             /// <summary>
             /// 未知或无法评估（例如，缺少关键点）
@@ -71,10 +81,18 @@ namespace Common
             /// </summary>
             RightSlightlyHigh,
 
-  
+            /// <summary>
+            /// 左侧显著偏高
+            /// </summary>
+            LeftObviouslyHigh,
+
+            /// <summary>
+            /// 右侧显著偏高
+            /// </summary>
+            RightObviouslyHigh
         }
 
-        public enum HunchbackSeverity  //驼背状态的 枚举类型
+        public enum HunchbackSeverity //2.驼背状态的 枚举类型
         {
             Unknown,        // 无法判断
             NoHunchback,    // 未检测到驼背
@@ -82,7 +100,7 @@ namespace Common
             ObviousHunchback // 明显驼背 
                              
         }
-        public enum HeadTiltSeverity
+        public enum HeadTiltSeverity//3.头部倾斜的 枚举类型
         {
             /// <summary>
             /// 未知或无法评估
@@ -113,20 +131,22 @@ namespace Common
             /// 头部明显右倾
             /// </summary>
             SignificantlyTiltedRight
-        }    // 头部左右倾的枚举类型
-
-        public enum HeadOrientationHorizontal
+        }   
+        
+        
+      //4.头部朝向
+        public enum HeadOrientationHorizontal//头部朝向左右倾的枚举类型
         {
             Unknown,
-            Forward,
+            Forward,//前 左 右
             Left,
             Right
-        }  //头部朝枚举类型
-
-        public enum HeadOrientationVertical
+        }  
+       
+        public enum HeadOrientationVertical //头部朝向上下倾的枚举类型
         {
             Unknown,
-            Straight, // 平视
+            Straight, //前 上 下
             Up,
             Down
         }

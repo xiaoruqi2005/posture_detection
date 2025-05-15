@@ -77,7 +77,8 @@ namespace PostureChecker
             button2.UseVisualStyleBackColor = true;
             // 
             // label1
-            // 
+            //
+            
             label1.BackColor = SystemColors.ButtonFace;
             label1.BorderStyle = BorderStyle.Fixed3D;
             label1.Location = new Point(-2, -1);
