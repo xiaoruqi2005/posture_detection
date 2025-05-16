@@ -14,7 +14,6 @@ namespace PostureChecker
             //data.MySqlOp();
             ApplicationConfiguration.Initialize();
 
-            //����������
             Application.Run(new Form1());
         }
     }

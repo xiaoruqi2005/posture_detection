@@ -84,7 +84,7 @@ namespace Analysis
                 Console.WriteLine($"socket 接受失败{t.Exception.GetBaseException().Message}");
                 SignalStop();
             }, TaskContinuationOptions.OnlyOnFaulted);
-            await stopSignal.Task; //返回一个 Task 对象，表示分析的结果
+           // await stopSignal.Task; //返回一个 Task 对象，表示分析的结果
         }
         //发出停止分析的信号
         public void SignalStop()
