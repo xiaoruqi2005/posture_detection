@@ -53,7 +53,7 @@
             button1.TabIndex = 1;
             button1.Text = "开始监测";
             button1.UseVisualStyleBackColor = true;
-            button1.Click += this.button1_Click;
+            button1.Click += button1_Click;
             // 
             // button2
             // 
