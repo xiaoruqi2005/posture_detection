@@ -23,7 +23,7 @@ namespace CameraTest
 
         private static readonly object printLock = new object();
 
-        static async Task Main(string[] args)
+        static async Task Man(string[] args)
         {
             poseClient = new PoseTcpClient(pythonScriptPath,Constants.pythonInterpreterPath);
             // poseClient.PoseDataReceived += PoseClient_PeriodicDataUpdate;

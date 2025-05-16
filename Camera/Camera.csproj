@@ -7,6 +7,14 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="MySql.Data" Version="9.3.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="System.Drawing.Common" Version="9.0.4" />
+  </ItemGroup>
+
+  <ItemGroup>
     <ProjectReference Include="..\Common\Common.csproj" />
   </ItemGroup>
 
@@ -17,10 +25,13 @@
     <None Update="pythonScripts\Holistic_server.py">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Update="pythonScripts\pose_server.py">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+	  
+    <None Update="pythonScripts\PythonEnv\**\*">
+	 <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
+	  
   </ItemGroup>
+
 	
 
 </Project>
