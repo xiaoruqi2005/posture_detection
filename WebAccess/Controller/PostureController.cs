@@ -2,6 +2,9 @@
 using WebAccess.DTO;
 using WebAccess.Service;
 using Common;
+using System.Net.Http.Headers;
+using System.Text;
+using System.Text.Json;
 
 namespace WebTest.Controllers
 {
@@ -139,15 +142,18 @@ namespace WebTest.Controllers
             return Ok(new { message = "Posture detection stopped." });
         }
 
-        [HttpPost("llm")] // POST /api/posture/llm
+        [HttpPost("llm/analyze")] // POST /api/posture/llm
         public async Task<IActionResult> QueryLLM([FromBody] LLMQueryRequest request)
         {
             if (request == null || string.IsNullOrWhiteSpace(request.Prompt))
             {
                 return BadRequest(new { message = "Prompt cannot be empty." });
             }
-            string suggestion = await _postureService.GetLLMSuggestionAsync(request.Prompt);
-            return Ok(new { response = suggestion });
+            String message = await _postureService.GetLLMSuggestionAsync(request.Prompt);
+            return Ok(new { response = message });
+         
+         
         }
+
     }
 }

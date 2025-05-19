@@ -22,9 +22,9 @@ namespace Analysis
         }
     }
 
-    public class Posenalyzer: IDisposable
+    public class Posenalyzer : IDisposable
     {
-        private  PoseTcpClient poseClient;
+        private PoseTcpClient poseClient;
         //发出停止信号的 TaskCompletionSource
         private TaskCompletionSource<bool> stopSignal = new TaskCompletionSource<bool>();
 
@@ -52,17 +52,17 @@ namespace Analysis
         //public const int RIGHT_HIP = 24;
 
         public static readonly AnalysisResult result = new AnalysisResult();
-    
+
         public bool _isStandardPosture = false;//比较综合的一个评价
 
         public Posenalyzer()
         {
-            poseClient = new PoseTcpClient(pythonScriptPath,Constants.pythonInterpreterPath);
+            poseClient = new PoseTcpClient(pythonScriptPath, Constants.pythonInterpreterPath);
             poseClient.PeriodicDataUPdate += PoseClient_PeriodicDataUPdate;
             poseClient.SetUpdateInterval(Constants.InterValMs);
             poseClient.ConnectionStatusChanged += PoseClient_ConnectionStatusChanged;
             poseClient.ImageFrameReceived += PoseClient_ImageFrameReceived;
-         //   poseClient.ConnectionStatusChanged += PoseClient_PeriodicDataUPdate;
+            //   poseClient.ConnectionStatusChanged += PoseClient_PeriodicDataUPdate;
         }
 
         private void PoseClient_ImageFrameReceived(object? sender, System.Drawing.Bitmap e)
@@ -70,7 +70,7 @@ namespace Analysis
             result.FrameData = e;
         }
 
-        public  async Task StartAsync()
+        public async Task StartAsync()
         {
             Console.WriteLine("---开始进行姿态分析---");
             Console.WriteLine("---正在启动python 脚本---");
@@ -84,7 +84,7 @@ namespace Analysis
                 Console.WriteLine($"socket 接受失败{t.Exception.GetBaseException().Message}");
                 SignalStop();
             }, TaskContinuationOptions.OnlyOnFaulted);
-           // await stopSignal.Task; //返回一个 Task 对象，表示分析的结果
+            // await stopSignal.Task; //返回一个 Task 对象，表示分析的结果
         }
         //发出停止分析的信号
         public void SignalStop()
@@ -125,7 +125,7 @@ namespace Analysis
                 Console.WriteLine("data 为空，无法分析");
                 return;
             }
-            
+
             Landmark nose = data.pose[NOSE_INDEX];
             Landmark leftShouder = data.pose[LEFT_SHOULDER_INDEX];
             Landmark rightShoudler = data.pose[RIGHT_SHOULDER_INDEX];
@@ -134,13 +134,13 @@ namespace Analysis
 
             CheckTimeStamp(); //记录当前帧时间戳
             CheckShoulder(leftShouder, rightShoudler);
-            CheckHead(leftEye,rightEye, nose);
+            CheckHead(leftEye, rightEye, nose);
             CheckEye(leftEye, rightEye);
-            CheckHunchback(leftShouder, rightShoudler,nose);
+            CheckHunchback(leftShouder, rightShoudler, nose);
             //测试效果
-        //    Console.WriteLine("运行到这里了1");
+            //    Console.WriteLine("运行到这里了1");
             Console.WriteLine(result);
-           // Console.WriteLine("运行到这里了2");
+            // Console.WriteLine("运行到这里了2");
 
         }
 
@@ -152,7 +152,7 @@ namespace Analysis
 
         //1.两肩两眼-------------------
         //两肩水平检测
-        private void CheckShoulder(Landmark ls, Landmark rs )
+        private void CheckShoulder(Landmark ls, Landmark rs)
         {
 
             if (ls == null || rs == null)
@@ -162,13 +162,13 @@ namespace Analysis
                 return;
             }
             // 计算双肩连线角度
-            float deltaY =( rs.y - ls.y) * Constants.Height;
+            float deltaY = (rs.y - ls.y) * Constants.Height;
             float deltaX = (rs.x - ls.x) * Constants.Width;
-            
+
             float calculatedAngleDegrees;       //计算结果的角度--
 
             // 处理两个地标点几乎重合的特殊情况
-            if (Math.Abs(deltaX) < 0.0001f && Math.Abs(deltaY) < 0.0001f)  
+            if (Math.Abs(deltaX) < 0.0001f && Math.Abs(deltaY) < 0.0001f)
             {
                 calculatedAngleDegrees = 0f;
                 result.ShoulderState = Constants.TiltSeverity.Unknown;
@@ -200,25 +200,25 @@ namespace Analysis
             else if (calculatedAngleDegrees > 0 && ((180 - calculatedAngleDegrees) > Constants.MaxShoulderHorizontalDeg))
             {
                 // 左肩显著高
-                result.ShoulderState = TiltSeverity.LeftObviouslyHigh;return;
+                result.ShoulderState = TiltSeverity.LeftObviouslyHigh; return;
             }
             else if (calculatedAngleDegrees < 0 && ((180 + calculatedAngleDegrees) > Constants.MaxShoulderHorizontalDeg))
             {
                 //右肩显著高
-                result.ShoulderState = TiltSeverity.RightObviouslyHigh;return;
+                result.ShoulderState = TiltSeverity.RightObviouslyHigh; return;
             }
 
-            else if (calculatedAngleDegrees >0&&((180- calculatedAngleDegrees)>Constants.SlightShoulderHorizontalDeg))
+            else if (calculatedAngleDegrees > 0 && ((180 - calculatedAngleDegrees) > Constants.SlightShoulderHorizontalDeg))
             {
                 // 左肩略微高
                 result.ShoulderState = TiltSeverity.LeftSlightlyHigh;
             }
-            else if (calculatedAngleDegrees <0&&((180 + calculatedAngleDegrees)>Constants.SlightShoulderHorizontalDeg))
+            else if (calculatedAngleDegrees < 0 && ((180 + calculatedAngleDegrees) > Constants.SlightShoulderHorizontalDeg))
             {
                 // 右肩略微高
                 result.ShoulderState = TiltSeverity.RightSlightlyHigh;
             }
-            
+
             else
             {
                 //这里不会用到，故缺省
@@ -272,11 +272,11 @@ namespace Analysis
             }
             else if (calculatedAngleDegrees > 0 && ((180 - calculatedAngleDegrees) > Constants.MaxEyeHorizontalDeg))
             {
-                result.EyeState = Constants.TiltSeverity.LeftObviouslyHigh;return;
+                result.EyeState = Constants.TiltSeverity.LeftObviouslyHigh; return;
             }
             else if (calculatedAngleDegrees < 0 && ((180 + calculatedAngleDegrees) > Constants.MaxEyeHorizontalDeg))
             {
-                result.EyeState = Constants.TiltSeverity.RightObviouslyHigh;return;
+                result.EyeState = Constants.TiltSeverity.RightObviouslyHigh; return;
             }
             // 右眼低于左眼 => 左眼更高
             else if (calculatedAngleDegrees > 0 && ((180 - calculatedAngleDegrees) > Constants.SlightEyeHorizontalDeg))
@@ -284,13 +284,14 @@ namespace Analysis
                 result.EyeState = Constants.TiltSeverity.LeftSlightlyHigh;
             }
             // 右眼高于左眼 => 右眼更高
-            else if (calculatedAngleDegrees < 0 && ((180 + calculatedAngleDegrees)>Constants.SlightEyeHorizontalDeg))
+            else if (calculatedAngleDegrees < 0 && ((180 + calculatedAngleDegrees) > Constants.SlightEyeHorizontalDeg))
             {
                 result.EyeState = Constants.TiltSeverity.RightSlightlyHigh;
             }
-          
-            else {
-              //缺省    
+
+            else
+            {
+                //缺省    
             }
         }
 
@@ -305,7 +306,7 @@ namespace Analysis
             ls.z = ls.z * Constants.Depth;
             rs.z = rs.z * Constants.Depth;
             nos.z = nos.z * Constants.Depth;
-           
+
             // 1. 计算双肩的平均Z坐标
             //    注意：这里简单取平均。更复杂的模型可能会考虑双肩连线的中点。
             float shoulderAverageZ = (ls.z + rs.z) / 2.0f;
@@ -322,19 +323,20 @@ namespace Analysis
             //    即 zDifference < -Constants.NeckForwardThresholdZ
 
             // z坐标越小说明离屏幕越近
-            if (zDifference >= Constants.NeckForwardThresholdZ) {
+            if (zDifference >= Constants.NeckForwardThresholdZ)
+            {
                 //如果鼻子在肩膀后面，说明没有驼背
                 result.HunchbackState = HunchbackSeverity.NoHunchback; //没有驼背
             }
 
-            else if( zDifference < Constants.NeckForwardThresholdZ   && zDifference > Constants.NectForwardThresholdZObvious )
+            else if (zDifference < Constants.NeckForwardThresholdZ && zDifference > Constants.NectForwardThresholdZObvious)
                 result.HunchbackState = HunchbackSeverity.SlightHunchback; //轻微驼背
             else result.HunchbackState = HunchbackSeverity.ObviousHunchback; //严重驼背
-            
+
         }
 
         //3.头部倾斜---------------------
-        public void CheckHead(Landmark le ,Landmark re,Landmark nos)
+        public void CheckHead(Landmark le, Landmark re, Landmark nos)
         {
             if (le == null || re == null)
             {
@@ -428,17 +430,17 @@ namespace Analysis
         }
 
         //4.头部朝向检测------------------
-              /// <summary>
-              /// 计算点到一条由两点定义的直线的垂直距离 (2D)。
-              /// lineP1, lineP2 定义直线，point 是要计算距离的点。
-              /// </summary>
-              /// 
+        /// <summary>
+        /// 计算点到一条由两点定义的直线的垂直距离 (2D)。
+        /// lineP1, lineP2 定义直线，point 是要计算距离的点。
+        /// </summary>
+        /// 
 
 
 
 
 
-    private float DistancePointToLine(Landmark point, Landmark lineP1, Landmark lineP2)
+        private float DistancePointToLine(Landmark point, Landmark lineP1, Landmark lineP2)
         {
             if (point == null || lineP1 == null || lineP2 == null) return float.MaxValue;
 
@@ -454,7 +456,7 @@ namespace Analysis
             return (float)(Math.Abs(A * point.x + B * point.y + C) / Math.Sqrt(A * A + B * B));
         }
 
-        public void AnalyzeHeadDirection_Combined(List<Landmark> landmarks, int imageWidth, int imageHeight)
+      /*  public void AnalyzeHeadDirection_Combined(List<Landmark> landmarks, int imageWidth, int imageHeight)
         {
             if (landmarks == null || landmarks.Count < 400) // 确保有足够的Face Mesh点
             {
@@ -557,66 +559,8 @@ namespace Analysis
             else if (pitchScore < 0) result.HeadPitchDirection = HeadOrientationVertical.Up;
             else result.HeadPitchDirection = HeadOrientationVertical.Straight;
 
-        }
+        }*/
 
         #endregion
-
-        /*   #region 辅助算法
-           //带可见性检查的关键点获取
-           private Landmark GetValidLandmark(List<Landmark> landmarks, int index, float minVisibility = 0.5f)//设定最小可见性为0.5
-           {
-               if (landmarks == null || index >= landmarks.Count) return null;
-               var lm = landmarks[index];
-               return (lm.visibility ?? 0) >= minVisibility ? lm : null;//返回null或点本身
-           }
-           //姿势持续时间检查
-           private void CheckPostureDuration(ref DateTime? startTime, bool isBadPosture, string postureName) {
-               if (isBadPosture) { 
-                   startTime??=DateTime.Now;
-               }
-
-           }
-
-
-           #endregion*/
     }
 }
-
-
-/*简化散点图
-           [0.72688544, 0.56508335],   // 0.43491665 → 1-0.43491665
-            [0.7729777, 0.67853543],    // 0.32146457 → 1-0.32146457
-            [0.802631, 0.67663142],     // 0.32336858 → 1-0.32336858
-            [0.8322169, 0.67561328],
-            [0.6759644, 0.68899593],
-            [0.6404269, 0.6926907],
-            [0.612177, 0.69484726],
-            [0.8706611, 0.64611772],
-            [0.56374156, 0.64994043],
-            [0.7663146, 0.45809066],
-            [0.6576844, 0.4726838],
-            [0.9806801, 0.22711265],
-            [0.36423257, 0.1411013],
-            [1.192946, -0.2421926],     // 注意：这里出现负坐标
-            [0.16992977, -0.3461021],
-            [1.0122304, 0.3209457],
-            [0.26204428, -0.8555199],
-            [0.9827927, 0.4736041],
-            [0.26773474, -1.0074146],
-            [0.9343287, 0.4962695],
-            [0.32092103, -0.9395112],
-            [0.9220913, 0.44563067],
-            [0.33349714, -0.8853474],
-            [0.9275886, -0.9709373],
-            [0.47438377, -0.9700596],
-            [0.91220236, -1.9174216],
-            [0.5305889, -1.8933508],
-            [0.90531284, -2.748955],
-            [0.5502607, -2.7395797],
-            [0.90718186, -2.8877609],
-            [0.544782, -2.8716595],
-            [0.8527028, -3.0198174],
-            [0.62977326, -3.0169187]
- 
- 
- */

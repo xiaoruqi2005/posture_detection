@@ -16,6 +16,7 @@ namespace Analysis
         //图形回传的暂存对象
         public Bitmap FrameData = new Bitmap(DrawHeight, DrawWidth);
 
+        public DateTime Timestamp { get; set; }
         // 1. 双肩水平度分析
         public float? ShoulderTiltAngle { get; set; } // 肩膀连线与水平线的夹角 (度)
 
@@ -38,7 +39,7 @@ namespace Analysis
         // 头部朝向检测
         //public HeadPose HeadPoseData { get; set; } // 存储头部姿态（旋转和平移向量）
        // public Vector3 EulerAnglesDegrees { get; set; } // 存储计算出的欧拉角 (Pitch, Yaw, Roll) 单位：度
-
+/*
         public HeadOrientationHorizontal HeadYawDirection { get; set; } = HeadOrientationHorizontal.Unknown;
         public HeadOrientationVertical HeadPitchDirection { get; set; } = HeadOrientationVertical.Unknown;
 
@@ -46,7 +47,7 @@ namespace Analysis
         //5 .视线检测属性
         public bool? IsGazeOnScreen {  get; set; }//视线是否在屏幕上
         public float? GazeOffsetAngle {  get; set; }//视线与屏幕偏离角度
-        public Vector3 GazeDirection { get; set; }//视线的方向向量 e.g.(1,2,3)
+        public Vector3 GazeDirection { get; set; }//视线的方向向量 e.g.(1,2,3)*/
                                                   // public String GazeOffsetDirection {  get; set; }//
         //6 .专注度
 /*        public float FocusScore { get; set; } = 1f;//专注度得分
@@ -100,7 +101,7 @@ namespace Analysis
         public List<String> DetectedIssues { get; private set; } // 存储所有检测到的问题描述
 */
         //9 . 原始数据时间戳或帧号 (可选)
-        public DateTime Timestamp { get; set; }
+      
         //public int? FrameId { get; set; }
 
 
