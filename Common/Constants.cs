@@ -9,7 +9,7 @@ namespace Common
         //public const String pythonInterpreterPath = "D:\\python_project\\pythonProject\\.venv\\Scripts\\python.exe"; // Python 解释器路径 注意对应的python环境下需要有mediapipe包
         // public const String pythonExecutable = "pythonScripts\\Holistic_server\\Holistic_server.exe"; // python 可执行文件路径 
         public const String pythonInterpreterPath = "pythonScripts\\PythonEnv\\Scripts\\python.exe";
-        public const int InterValMs = 5000; // 解析间隔时间
+        public const int InterValMs = 500; // 解析间隔时间
         public const int waitTime = 5000; // 等待时间 ，单位 毫秒
 
         //public static readonly AnalysisResult result;//存储结果的静态对象

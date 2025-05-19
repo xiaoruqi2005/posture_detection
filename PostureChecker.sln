@@ -13,6 +13,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Analysis", "Analysis\Analys
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CameraTest", "CameraTest\CameraTest.csproj", "{8A1009DF-8F75-4967-A718-CEA8CC01C08B}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WebAccess", "WebAccess\WebAccess.csproj", "{EBBDAFCE-67C9-4E9B-96C5-657E3457C698}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -39,6 +41,10 @@ Global
 		{8A1009DF-8F75-4967-A718-CEA8CC01C08B}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{8A1009DF-8F75-4967-A718-CEA8CC01C08B}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{8A1009DF-8F75-4967-A718-CEA8CC01C08B}.Release|Any CPU.Build.0 = Release|Any CPU
+		{EBBDAFCE-67C9-4E9B-96C5-657E3457C698}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{EBBDAFCE-67C9-4E9B-96C5-657E3457C698}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{EBBDAFCE-67C9-4E9B-96C5-657E3457C698}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{EBBDAFCE-67C9-4E9B-96C5-657E3457C698}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
