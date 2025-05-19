@@ -9,11 +9,14 @@ namespace Common
         //public const String pythonInterpreterPath = "D:\\python_project\\pythonProject\\.venv\\Scripts\\python.exe"; // Python 解释器路径 注意对应的python环境下需要有mediapipe包
         // public const String pythonExecutable = "pythonScripts\\Holistic_server\\Holistic_server.exe"; // python 可执行文件路径 
         public const String pythonInterpreterPath = "pythonScripts\\PythonEnv\\Scripts\\python.exe";
-        public const int InterValMs = 500; // 解析间隔时间
+        public const int InterValMs = 5000; // 解析间隔时间
         public const int waitTime = 5000; // 等待时间 ，单位 毫秒
 
         //public static readonly AnalysisResult result;//存储结果的静态对象
 
+        //绘图尺寸
+        public const int DrawWidth = 640; // 绘图宽度
+        public const int DrawHeight = 480; // 绘图高度
 
         # region 各种姿势的阈值常量设置
         //1.两肩两眼水平阈值----------------------
@@ -44,24 +47,15 @@ namespace Common
         public const int Depth = 100;   //用于描述深度的相对值
 
         //4.头部朝向的阈值--------------------------
-        public const float EarZDifferenceThreshold = 100; // 耳朵z轴差异阈值
+        public const float EarZDifferenceThreshold = 10; // 耳朵z轴差异阈值
         public const float SymmetryDifferenceRatioThreshold = 100; // 耳朵对称差异比率阈值
         public const float HeadYawThreshold = 30; // 头部水平朝向的阈值
         public const float HeadPitchThreshold = 30; // 头部竖直朝向的阈值
         public const float PitchNoseEyeYThresholdNormalized = 10;
-        public const float PitchForeheadChinZThreshold = 100;
-
-        //5.视线
-
-
-
+        public const float PitchForeheadChinZThreshold = 18;
 
         #endregion
 
-
-        //绘图尺寸
-        public const int DrawWidth = 640; // 绘图宽度
-        public const int DrawHeight = 480; // 绘图高度
 
         #region 各种姿势的枚举类型
 
@@ -158,10 +152,15 @@ namespace Common
             Down
         }
 
-        //5.视线的枚举类型
-        //简单的视线在与不在屏幕上
-
-
+        //5.综合评估的枚举类型
+        public enum OverallPosture 
+        { 
+            Unknown,
+            StandardPosture,
+            MinorPoor,
+            SeverelyPoor//未知 姿势标准 轻微不良 严重不良 
+        }
+        
         #endregion 
 
 

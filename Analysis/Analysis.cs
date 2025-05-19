@@ -136,8 +136,9 @@ namespace Analysis
             CheckShoulder(leftShouder, rightShoudler);
             CheckHead(leftEye, rightEye, nose);
             CheckEye(leftEye, rightEye);
-            CheckHunchback(leftShouder, rightShoudler,nose);
-            AnalyzeHeadDirection_Combined(data.pose, Constants.Width, Constants.Height);
+            CheckHunchback(leftShouder, rightShoudler, nose);
+            AnalyzeHeadDirection_Combined(data.face, Constants.Width, Constants.Height);
+            ComprehensiveAnalyse();
             //测试效果
             //    Console.WriteLine("运行到这里了1");
             Console.WriteLine(result);
@@ -152,8 +153,8 @@ namespace Analysis
         }
 
         //1.两肩两眼-------------------
-            //两肩水平检测
-        private void CheckShoulder(Landmark ls, Landmark rs )
+        //两肩水平检测
+        private void CheckShoulder(Landmark ls, Landmark rs)
         {
 
             if (ls == null || rs == null)
@@ -227,7 +228,7 @@ namespace Analysis
 
         }
 
-            //两眼水平检测
+        //两眼水平检测
         private void CheckEye(Landmark le, Landmark re)
         {
             if (le == null || re == null)
@@ -376,13 +377,13 @@ namespace Analysis
             float absAngle = Math.Abs(calculatedAngleDegrees);
             absAngle = Math.Abs(180 - absAngle);
 
-            
+
             if (absAngle <= Constants.MaxHeadUprightAngle)
             {
                 result.HeadTiltState = HeadTiltSeverity.Upright;
             }
             // tmpAngleDegrees < 0: 头部向人物的左侧倾斜
-            else if (tmpAngleDegrees<0)
+            else if (tmpAngleDegrees < 0)
             {
                 if (absAngle <= Constants.SlightHeadTiltThreshold)
                 {
@@ -394,7 +395,7 @@ namespace Analysis
                 }
             }
             // calculatedAngleDegrees < 0: 头部向人物的右侧倾斜
-            else if (tmpAngleDegrees >0)
+            else if (tmpAngleDegrees > 0)
             {
                 // 此时 calculatedAngleDegrees 是负数, absAngle 是其绝对值
                 if (absAngle <= Constants.SlightHeadTiltThreshold)
@@ -409,16 +410,6 @@ namespace Analysis
         }
 
         //4.头部朝向检测------------------
-        /// <summary>
-        /// 计算点到一条由两点定义的直线的垂直距离 (2D)。
-        /// lineP1, lineP2 定义直线，point 是要计算距离的点。
-        /// </summary>
-        /// 
-
-
-
-
-
         private float DistancePointToLine(Landmark point, Landmark lineP1, Landmark lineP2)
         {
             if (point == null || lineP1 == null || lineP2 == null) return float.MaxValue;
@@ -435,7 +426,7 @@ namespace Analysis
             return (float)(Math.Abs(A * point.x + B * point.y + C) / Math.Sqrt(A * A + B * B));
         }
 
-      /*  public void AnalyzeHeadDirection_Combined(List<Landmark> landmarks, int imageWidth, int imageHeight)
+        public void AnalyzeHeadDirection_Combined(List<Landmark> landmarks, int imageWidth, int imageHeight)
         {
             if (landmarks == null || landmarks.Count < 400) // 确保有足够的Face Mesh点
             {
@@ -486,8 +477,8 @@ namespace Analysis
 
                 // 眼睛对称性
                 float eyeDistDiffRatio = (distLeftEyeToMidline - distRightEyeToMidline) / ((distLeftEyeToMidline + distRightEyeToMidline) / 2f + 1e-6f);
-                if (eyeDistDiffRatio > SymmetryDifferenceRatioThreshold) yawScore++; // 左眼远，右眼近 => 头向右转
-                if (eyeDistDiffRatio < -SymmetryDifferenceRatioThreshold) yawScore--; // 左眼近，右眼远 => 头向左转
+                if (eyeDistDiffRatio > SymmetryDifferenceRatioThreshold) yawScore++; // 右眼远，左眼近 => 头向左转
+                if (eyeDistDiffRatio < -SymmetryDifferenceRatioThreshold) yawScore--; // 右眼近，左眼远 => 头向右转
 
                 // 嘴巴对称性
                 float mouthDistDiffRatio = (distLeftMouthToMidline - distRightMouthToMidline) / ((distLeftMouthToMidline + distRightMouthToMidline) / 2f + 1e-6f);
@@ -499,15 +490,16 @@ namespace Analysis
             // 1b. 深度线索 (耳朵Z坐标)
             if (leftEar != null && rightEar != null)
             {
-                float earZDiff = leftEar.z - rightEar.z;
-                // z越小越近。如果 leftEar.z < rightEar.z (diff < 0), 说明左耳更近，头可能向右转
-                if (earZDiff > EarZDifferenceThreshold) yawScore--; // 左耳远，右耳近 => 头向左转
-                if (earZDiff < -EarZDifferenceThreshold) yawScore++; // 左耳近，右耳远 => 头向右转
+                float earZDiff = Constants.Depth * (leftEar.z - rightEar.z);
+                // z越小越近。如果 leftEar.z < rightEar.z (diff < 0), 说明右耳更近，头可能向左转
+                //Console.WriteLine("--earZDiff--------     " + earZDiff + "---------阈值10-------");
+                if (earZDiff > EarZDifferenceThreshold) yawScore--; // 右耳远，左耳近 => 头向右转
+                if (earZDiff < -EarZDifferenceThreshold) yawScore++; // 右耳近，左耳远 => 头向左转
             }
 
             // 综合Yaw分数判断
-            if (yawScore > 0) result.HeadYawDirection = HeadOrientationHorizontal.Right;
-            else if (yawScore < 0) result.HeadYawDirection = HeadOrientationHorizontal.Left;
+            if (yawScore > 0) result.HeadYawDirection = HeadOrientationHorizontal.Left;
+            else if (yawScore < 0) result.HeadYawDirection = HeadOrientationHorizontal.Right;
             else result.HeadYawDirection = HeadOrientationHorizontal.Forward;
 
 
@@ -516,29 +508,88 @@ namespace Analysis
             // 或者额头和下巴的Z坐标差异 (更依赖Z的稳定性)
             int pitchScore = 0;
 
+            /*
             // 2a. 鼻子与眼睛的Y坐标比较 (Y轴向下为正)
             float eyeCenterY = (leftEyeOuter.y + rightEyeOuter.y) / 2f;
-            float noseEyeYDiffNormalized = noseTip.y - eyeCenterY;
+            float noseEyeYDiffNormalized = Constants.Height * (noseTip.y - eyeCenterY);
+            Console.WriteLine("--noseEyeYDiffNormalized--------      " + noseEyeYDiffNormalized + "----阈值10------------");
 
             if (noseEyeYDiffNormalized > PitchNoseEyeYThresholdNormalized) pitchScore++; // 鼻子在眼下方 => 低头
             if (noseEyeYDiffNormalized < -PitchNoseEyeYThresholdNormalized) pitchScore--; // 鼻子在眼上方 => 抬头
+            */
 
             // 2b. 额头和下巴的Z坐标比较 (可选，如果Z坐标可靠)
             if (foreheadCenter != null && chinCenter != null)
             {
-                float foreheadChinZDiff = foreheadCenter.z - chinCenter.z;
+                float foreheadChinZDiff = Constants.Depth * (foreheadCenter.z - chinCenter.z);
+                //Console.WriteLine("--foreheadChinZDiff----     " + foreheadChinZDiff + "-----阈值18------负8------");
                 // z越小越近。如果额头比下巴近 (forehead.z < chin.z, diff < 0) => 可能抬头
                 // 如果额头比下巴远 (forehead.z > chin.z, diff > 0) => 可能低头
-                if (foreheadChinZDiff > PitchForeheadChinZThreshold) pitchScore++; // 额头远，下巴近 => 低头
-                if (foreheadChinZDiff < -PitchForeheadChinZThreshold) pitchScore--; // 额头近，下巴远 => 抬头
+                if (foreheadChinZDiff > PitchForeheadChinZThreshold) pitchScore++; // 额头远，下巴近 => 抬头
+                if (foreheadChinZDiff < -PitchForeheadChinZThreshold+15) pitchScore--; // 额头近，下巴远 => 低头
             }
 
-            // 综合Pitch分数判断
-            if (pitchScore > 0) result.HeadPitchDirection = HeadOrientationVertical.Down;
-            else if (pitchScore < 0) result.HeadPitchDirection = HeadOrientationVertical.Up;
+            // Pitch分数判断
+            if (pitchScore > 0) result.HeadPitchDirection = HeadOrientationVertical.Up;
+            else if (pitchScore < 0) result.HeadPitchDirection = HeadOrientationVertical.Down;
             else result.HeadPitchDirection = HeadOrientationVertical.Straight;
+          
+        }
 
-        }*/
+        //5.综合评价---------------------
+        public void ComprehensiveAnalyse() {
+            //AnalysisResult:
+            /*
+            ShoulderState
+            EyeState
+                Unknown,
+                Level,
+                LeftSlightlyHigh,
+                RightSlightlyHigh,
+                LeftObviouslyHigh,
+                RightObviouslyHigh
+
+            HunchbackState
+                Unknown,        // 无法判断
+                NoHunchback,    // 未检测到驼背
+                SlightHunchback, // 轻微驼背
+                ObviousHunchback // 明显驼背 
+
+            HeadTiltState
+                Unknown,
+                Upright,
+                SlightlyTiltedLeft,
+                SignificantlyTiltedLeft,
+                SlightlyTiltedRight,
+            */
+            //按照优先级：
+            //如果有未能检测出来的Unknown状态
+            if (result.ShoulderState== TiltSeverity.Unknown|| result.EyeState== TiltSeverity.Unknown
+                || result.HunchbackState== HunchbackSeverity.Unknown|| result.HeadTiltState== HeadTiltSeverity.Unknown) {
+                result.OverallPostureStatus = OverallPosture.Unknown;
+            }
+            //如果有检测出来的严重情况
+            else if (result.ShoulderState == TiltSeverity.LeftObviouslyHigh || result.EyeState == TiltSeverity.LeftObviouslyHigh
+                || result.ShoulderState == TiltSeverity.RightObviouslyHigh || result.EyeState == TiltSeverity.RightObviouslyHigh
+                || result.HunchbackState == HunchbackSeverity.ObviousHunchback || result.HeadTiltState == HeadTiltSeverity.SignificantlyTiltedLeft)
+            {
+                result.OverallPostureStatus = OverallPosture.SeverelyPoor;
+            }
+            //如果有检测出来的轻微严重情况
+            else if (result.ShoulderState == TiltSeverity.LeftSlightlyHigh || result.EyeState == TiltSeverity.LeftSlightlyHigh
+                || result.ShoulderState == TiltSeverity.RightSlightlyHigh || result.EyeState == TiltSeverity.RightSlightlyHigh
+                || result.HunchbackState == HunchbackSeverity.SlightHunchback || result.HeadTiltState == HeadTiltSeverity.SlightlyTiltedLeft
+                || result.HeadTiltState == HeadTiltSeverity.SlightlyTiltedRight)
+            {
+                result.OverallPostureStatus = OverallPosture.MinorPoor;
+            }
+            //体态检测的各个指标全部正常，则该时刻的综合
+            else
+            {
+                result.OverallPostureStatus = OverallPosture.StandardPosture;
+            }
+            
+        }
 
         #endregion
     }
