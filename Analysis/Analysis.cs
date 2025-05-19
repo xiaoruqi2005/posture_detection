@@ -137,6 +137,7 @@ namespace Analysis
             CheckHead(leftEye,rightEye, nose);
             CheckEye(leftEye, rightEye);
             CheckHunchback(leftShouder, rightShoudler,nose);
+            AnalyzeHeadDirection_Combined(data.pose, Constants.Width, Constants.Height);
             //测试效果
         //    Console.WriteLine("运行到这里了1");
             Console.WriteLine(result);
@@ -151,7 +152,7 @@ namespace Analysis
         }
 
         //1.两肩两眼-------------------
-        //两肩水平检测
+            //两肩水平检测
         private void CheckShoulder(Landmark ls, Landmark rs )
         {
 
@@ -226,7 +227,7 @@ namespace Analysis
 
         }
 
-        //两眼水平
+            //两眼水平检测
         private void CheckEye(Landmark le, Landmark re)
         {
             if (le == null || re == null)
@@ -373,47 +374,25 @@ namespace Analysis
             float absAngle = Math.Abs(calculatedAngleDegrees);
             absAngle = Math.Abs(180 - absAngle);
 
-            if (absAngle <= Constants.SlightEyeHorizontalDeg) // 使用眼睛特定的阈值
-            {
-                result.EyeState = Constants.TiltSeverity.Level;
-            }
-            else if (calculatedAngleDegrees > 0 && ((180 - calculatedAngleDegrees) > Constants.MaxEyeHorizontalDeg))
-            {
-                result.EyeState = Constants.TiltSeverity.LeftObviouslyHigh; return;
-            }
-            else if (calculatedAngleDegrees < 0 && ((180 + calculatedAngleDegrees) > Constants.MaxEyeHorizontalDeg))
-            {
-                result.EyeState = Constants.TiltSeverity.RightObviouslyHigh; return;
-            }
-            // 右眼低于左眼 => 左眼更高
-            else if (calculatedAngleDegrees > 0 && ((180 - calculatedAngleDegrees) > Constants.SlightEyeHorizontalDeg))
-            {
-                result.EyeState = Constants.TiltSeverity.LeftSlightlyHigh;
-            }
-            // 右眼高于左眼 => 右眼更高
-            else if (calculatedAngleDegrees < 0 && ((180 + calculatedAngleDegrees) > Constants.SlightEyeHorizontalDeg))
-            {
-                result.EyeState = Constants.TiltSeverity.RightSlightlyHigh;
-            }
-
+            
             if (absAngle <= Constants.MaxHeadUprightAngle)
             {
                 result.HeadTiltState = HeadTiltSeverity.Upright;
             }
-            // calculatedAngleDegrees > 0: 头部向人物的左侧倾斜
-            else if (calculatedAngleDegrees > Constants.MaxHeadUprightAngle)
+            // tmpAngleDegrees < 0: 头部向人物的左侧倾斜
+            else if (tmpAngleDegrees<0)
             {
-                if (calculatedAngleDegrees <= Constants.SlightHeadTiltThreshold)
+                if (absAngle <= Constants.SlightHeadTiltThreshold)
                 {
                     result.HeadTiltState = HeadTiltSeverity.SlightlyTiltedLeft;
                 }
-                else // calculatedAngleDegrees > Constants.SlightHeadTiltThreshold
+                else // absAngle > Constants.SlightHeadTiltThreshold
                 {
                     result.HeadTiltState = HeadTiltSeverity.SignificantlyTiltedLeft;
                 }
             }
             // calculatedAngleDegrees < 0: 头部向人物的右侧倾斜
-            else if (calculatedAngleDegrees < -Constants.MaxHeadUprightAngle)
+            else if (tmpAngleDegrees >0)
             {
                 // 此时 calculatedAngleDegrees 是负数, absAngle 是其绝对值
                 if (absAngle <= Constants.SlightHeadTiltThreshold)
@@ -435,9 +414,6 @@ namespace Analysis
               /// 
 
 
-
-
-
     private float DistancePointToLine(Landmark point, Landmark lineP1, Landmark lineP2)
         {
             if (point == null || lineP1 == null || lineP2 == null) return float.MaxValue;
@@ -454,7 +430,7 @@ namespace Analysis
             return (float)(Math.Abs(A * point.x + B * point.y + C) / Math.Sqrt(A * A + B * B));
         }
 
-        public void AnalyzeHeadDirection_Combined(List<Landmark> landmarks, int imageWidth, int imageHeight)
+    public void AnalyzeHeadDirection_Combined(List<Landmark> landmarks, int imageWidth, int imageHeight)
         {
             if (landmarks == null || landmarks.Count < 400) // 确保有足够的Face Mesh点
             {
@@ -560,6 +536,9 @@ namespace Analysis
         }
 
         #endregion
+
+
+
 
         /*   #region 辅助算法
            //带可见性检查的关键点获取

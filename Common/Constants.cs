@@ -15,7 +15,7 @@ namespace Common
         //public static readonly AnalysisResult result;//存储结果的静态对象
 
 
-        # region 各种姿势的阈值常量
+        # region 各种姿势的阈值常量设置
         //1.两肩两眼水平阈值----------------------
 
         //轻微偏离
@@ -29,8 +29,8 @@ namespace Common
 
         //2.驼背阈值-----------------------------
 
-        public const float NeckForwardThresholdZ = -75f;      //轻微驼背阈值   （z轴差异）为负值
-        public const float NectForwardThresholdZObvious = -110f;      //严重驼背阈值  （z轴差异） 为负值
+        public const float NeckForwardThresholdZ = -90f;      //轻微驼背阈值   （z轴差异）为负值
+        public const float NectForwardThresholdZObvious = -120f;      //严重驼背阈值  （z轴差异） 为负值
 
         //3.头部倾斜阈值--------------------------
         public const float MaxHeadUprightAngle = 4f;      // 头部正直的最大允许角度偏差
@@ -51,6 +51,11 @@ namespace Common
         public const float PitchNoseEyeYThresholdNormalized = 10;
         public const float PitchForeheadChinZThreshold = 100;
 
+        //5.视线
+
+
+
+
         #endregion
 
 
@@ -58,8 +63,10 @@ namespace Common
         public const int DrawWidth = 640; // 绘图宽度
         public const int DrawHeight = 480; // 绘图高度
 
+        #region 各种姿势的枚举类型
 
-        public enum TiltSeverity//1.两肩两眼倾斜的 枚举类型
+        //1.两肩两眼倾斜的枚举类型
+        public enum TiltSeverity
         {
             /// <summary>
             /// 未知或无法评估（例如，缺少关键点）
@@ -91,16 +98,17 @@ namespace Common
             /// </summary>
             RightObviouslyHigh
         }
-
-        public enum HunchbackSeverity //2.驼背状态的 枚举类型
+        //2.驼背状态的枚举类型
+        public enum HunchbackSeverity 
         {
             Unknown,        // 无法判断
             NoHunchback,    // 未检测到驼背
             SlightHunchback, // 轻微驼背
             ObviousHunchback // 明显驼背 
-                             
+
         }
-        public enum HeadTiltSeverity//3.头部倾斜的 枚举类型
+        //3.头部倾斜的枚举类型
+        public enum HeadTiltSeverity
         {
             /// <summary>
             /// 未知或无法评估
@@ -132,10 +140,9 @@ namespace Common
             /// </summary>
             SignificantlyTiltedRight
         }   
-        
-        
-      //4.头部朝向
-        public enum HeadOrientationHorizontal//头部朝向左右倾的枚举类型
+      
+        //4.头部朝向的枚举类型
+        public enum HeadOrientationHorizontal//左右倾
         {
             Unknown,
             Forward,//前 左 右
@@ -143,13 +150,20 @@ namespace Common
             Right
         }  
        
-        public enum HeadOrientationVertical //头部朝向上下倾的枚举类型
+        public enum HeadOrientationVertical //上下倾
         {
             Unknown,
             Straight, //前 上 下
             Up,
             Down
         }
+
+        //5.视线的枚举类型
+        //简单的视线在与不在屏幕上
+
+
+        #endregion 
+
 
     }
 }

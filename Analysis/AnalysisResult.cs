@@ -16,31 +16,32 @@ namespace Analysis
         //图形回传的暂存对象
         public Bitmap FrameData = new Bitmap(DrawHeight, DrawWidth);
 
-        // 1. 双肩水平度分析
+        // 1. 两肩两眼水平分析--------------
+            // 双肩水平度
         public float? ShoulderTiltAngle { get; set; } // 肩膀连线与水平线的夹角 (度)
 
         public TiltSeverity ShoulderState;
        
 
-        // 2. 双眼水平度分析
+            //双眼水平度
         public float? EyeTiltAngle { get; set; }      // 双眼连线与水平线的夹角 (度)
         public Constants.TiltSeverity EyeState { get; set; }  //基于阈值的眼睛水平度状态
 
 
-       //驼背状态分析 
+       //2.驼背状态分析 -----------------------
        public HunchbackSeverity HunchbackState { get; set; } // 驼背状态
 
-        // 3. 头部倾斜分析
+        // 3. 头部倾斜度分析---------------------
         public float? HeadTiltAngle { get; set; } // 头部中轴线与垂直线的夹角 (度)
         public HeadTiltSeverity HeadTiltState { get; set; } // 头部倾斜状态
 
 
-        // 头部朝向检测
+        // 4.头部朝向检测------------------------
         //public HeadPose HeadPoseData { get; set; } // 存储头部姿态（旋转和平移向量）
        // public Vector3 EulerAnglesDegrees { get; set; } // 存储计算出的欧拉角 (Pitch, Yaw, Roll) 单位：度
 
-        public HeadOrientationHorizontal HeadYawDirection { get; set; } = HeadOrientationHorizontal.Unknown;
-        public HeadOrientationVertical HeadPitchDirection { get; set; } = HeadOrientationVertical.Unknown;
+        public HeadOrientationHorizontal HeadYawDirection { get; set; } //= HeadOrientationHorizontal.Unknown;
+        public HeadOrientationVertical HeadPitchDirection { get; set; }// = HeadOrientationVertical.Unknown;
 
 
         //5 .视线检测属性
@@ -96,9 +97,9 @@ namespace Analysis
 */
 
         //8 . 综合评估
-      /*  public String OverallPostureStatus { get; set; } = "评估中..."; // 如: "姿势标准", "轻微不良", "严重不良，请调整"
+       public String OverallPostureStatus { get; set; } = "评估中..."; // 如: "姿势标准", "轻微不良", "严重不良，请调整"
         public List<String> DetectedIssues { get; private set; } // 存储所有检测到的问题描述
-*/
+
         //9 . 原始数据时间戳或帧号 (可选)
         public DateTime Timestamp { get; set; }
         //public int? FrameId { get; set; }
@@ -123,6 +124,8 @@ namespace Analysis
             sb.Append("EyeState: " + EyeState + "\n");
             sb.Append("HunchbackState: " + HunchbackState + "\n");
             sb.Append("HeadTiltAngle: " + HeadTiltAngle + "\n");
+            sb.Append("HeadTiltState: " + HeadTiltState + "\n");
+            sb.Append("HeadTiltState: " + HeadTiltState + "\n");
             sb.Append("HeadTiltState: " + HeadTiltState + "\n");
 
             sb.Append("TimeStamp" + Timestamp + "\n");
