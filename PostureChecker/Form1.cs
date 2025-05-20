@@ -4,7 +4,7 @@ namespace PostureChecker
     {
         public Form1()
         {
-            InitializeComponent();
+            //InitializeComponent();
             this.Text = "��̬�������";
         }
 

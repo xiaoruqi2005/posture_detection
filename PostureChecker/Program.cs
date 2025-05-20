@@ -15,9 +15,16 @@ namespace WindowsFormsApp1
         [STAThread]
         static void Main()
         {
-            Application.EnableVisualStyles();
-            Application.SetCompatibleTextRenderingDefault(false);
-            Application.Run(new Data());
+            //Application.EnableVisualStyles();
+            //Application.SetCompatibleTextRenderingDefault(false);
+            //Application.Run(new Data());
+            DataBase db = new DataBase();
+            List<string[]> result = db.Table();
+            foreach (var row in result)
+            {
+                Console.WriteLine(string.Join("  ", row));
+            }
         }
     }
+
 }
