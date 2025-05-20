@@ -4,8 +4,8 @@ namespace PostureChecker
     {
         public Form1()
         {
-            InitializeComponent();
-            this.Text = "ÌåÌ¬¼ì²âÖúÊÖ";
+            //InitializeComponent();
+            this.Text = "ï¿½ï¿½Ì¬ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½";
         }
 
         private void textBox1_TextChanged(object sender, EventArgs e)
@@ -14,14 +14,14 @@ namespace PostureChecker
         }
         private void button1_Click(object sender, EventArgs e)
         {
-            MessageBox.Show("ÕâÊÇÒ»¸öÌáÊ¾µ¯´°£¡", "±êÌâ", MessageBoxButtons.OK, MessageBoxIcon.Information);
+            MessageBox.Show("ï¿½ï¿½ï¿½ï¿½Ò»ï¿½ï¿½ï¿½ï¿½Ê¾ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½", "ï¿½ï¿½ï¿½ï¿½", MessageBoxButtons.OK, MessageBoxIcon.Information);
 
-            // ´øÈ·ÈÏ/È¡Ïû°´Å¥£¨¿É¸ù¾ÝÓÃ»§Ñ¡ÔñÖ´ÐÐ²Ù×÷£©
-            DialogResult result = MessageBox.Show("È·¶¨ÒªÖ´ÐÐ´Ë²Ù×÷Âð£¿", "È·ÈÏ", MessageBoxButtons.OKCancel);
+            // ï¿½ï¿½È·ï¿½ï¿½/È¡ï¿½ï¿½ï¿½ï¿½Å¥ï¿½ï¿½ï¿½É¸ï¿½ï¿½ï¿½ï¿½Ã»ï¿½Ñ¡ï¿½ï¿½Ö´ï¿½Ð²ï¿½ï¿½ï¿½ï¿½ï¿½
+            DialogResult result = MessageBox.Show("È·ï¿½ï¿½ÒªÖ´ï¿½Ð´Ë²ï¿½ï¿½ï¿½ï¿½ï¿½", "È·ï¿½ï¿½", MessageBoxButtons.OKCancel);
             if (result == DialogResult.OK)
             {
-                // ÓÃ»§µã»÷ÁË¡°È·¶¨¡±
-                Console.WriteLine("ÓÃ»§È·ÈÏ²Ù×÷");
+                // ï¿½Ã»ï¿½ï¿½ï¿½ï¿½ï¿½Ë¡ï¿½È·ï¿½ï¿½ï¿½ï¿½
+                Console.WriteLine("ï¿½Ã»ï¿½È·ï¿½Ï²ï¿½ï¿½ï¿½");
             }
 
         }

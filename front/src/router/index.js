@@ -31,6 +31,11 @@ const routes = [
         name: 'LLM',
         component: LLMPage,
     },
+    {
+        path : '/llm-analysis',
+        name : 'LLMAnalysis',
+        component : LLMPage
+    },
     // 捕获所有未匹配的路由 (404 Not Found) - 应该放在最后
     {
         path: '/:catchAll(.*)*', // 使用动态参数和自定义正则表达式

@@ -54,7 +54,7 @@ namespace PostureChecker
             dataGridView1.Rows.Clear();//清空旧数据
             DataBase da = new DataBase();
             string sql = "select * from data_table;";
-            string a0, a1, a2, a3, a4, a5, a6;
+            string a0, a1, a2, a3, a4, a5, a6, a7, a8, a9, a10;
             IDataReader dc = da.read(sql);
             while (dc.Read())
             {
@@ -64,8 +64,13 @@ namespace PostureChecker
                 a3 = dc[2].ToString();
                 a4 = dc[3].ToString();
                 a5 = dc[4].ToString();
-                a6 = dc[5].ToString();
-                string[] table = { a0, a1, a2, a3, a4, a5, a6 };
+                a6 = dc[7].ToString();
+                a7 = dc[11].ToString();
+                a8 = dc[8].ToString();
+                a9 = dc[9].ToString();
+                a10 = dc[10].ToString();
+                //a11 = dc[12].ToString();
+                string[] table = { a0, a1, a2, a3, a4, a5, a6, a7, a8, a9, a10 };//, a11 };
                 dataGridView1.Rows.Add(table);
             }
             dc.Close();
