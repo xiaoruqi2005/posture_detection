@@ -4,10 +4,10 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-
 using MySql.Data.MySqlClient;
 using System.Data;
 using System.Windows.Forms;
+using static Common.Constants;
 
 namespace PostureChecker
 {
@@ -38,19 +38,7 @@ namespace PostureChecker
         {
             sc.Close();
         }
-        public void InsertData(AnalysisResult result)//插入
-        {
-            //Application.Run(new Data());
-            //Console.WriteLine("--- 开始进行测试  ---");
-            //Posenalyzer ana = new Posenalyzer();
-            //ana.StartAsync().Wait();
-            DataBase db = new DataBase();
-            string sql1 = "use mydata;";
-            MySqlCommand cmd = command(sql1);
-            sc.Open();
-            cmd.ExecuteNonQuery();
-            cmd.Dispose();
-        }
+
         public List<string[]> Table()
         {
             //dataGridView1.Rows.Clear();//清空旧数据
@@ -81,68 +69,80 @@ namespace PostureChecker
             da.Dataclose();
             return result;
         }
-        /// <summary>
-        /// 【方法】将datagridview中的数据写入到数据库的table中。
-        /// </summary>
-        /// <param name="dbSource">服务器名称，如localhost</param>
-        /// <param name="dbUid">用户名，如root</param>
-        /// <param name="dbPwd">密码</param>
-        /// <param name="dbName">已有数据库名称</param>
-        /// <param name="tbName">已有数据表名称</param>
-        /// <param name="dataGrid">datagridview的名称</param>
-        //static void InsertDataToTable(string dbSource, string dbUid, string dbPwd, string dbName, string tbName, DataGridView dataGrid)
-        //{
-        //    //创建连接字符串con
-        //    MySqlConnection con = new MySqlConnection("Data Source=" + dbSource + ";Persist Security Info=yes;UserId=" + dbUid + "; PWD=" + dbPwd + ";");
+        public void InsertAnalysisResult(AnalysisResult result)
+        {
+            try
+            {
 
-        //    // 打开数据库
-        //    string tablecmd = "USE " + dbName + ";";
-        //    MySqlCommand cmd = new MySqlCommand(tablecmd, con);
-        //    con.Open();
-        //    int res = cmd.ExecuteNonQuery();
+                if (result.ShoulderState == TiltSeverity.Unknown ||
+                    result.EyeState == TiltSeverity.Unknown ||
+                    result.HunchbackState == HunchbackSeverity.Unknown ||
+                    result.HeadTiltState == HeadTiltSeverity.Unknown ||
+                    result.HeadYawDirection == HeadOrientationHorizontal.Unknown ||
+                    result.HeadPitchDirection == HeadOrientationVertical.Unknown ||
+                    result.OverallPostureStatus == OverallPosture.Unknown)
+                {
+                    throw new InvalidOperationException("存在未检测到数据的字段(Unknown状态)，拒绝写入数据库");
+                }
 
-        //    for (int i = 0; i < dataGrid.RowCount; i++)
-        //    {
-        //        string data = "INSERT INTO " + tbName + " VALUES (" +
-        //            (i + 1) + "," +
-        //            "'" + dataGrid[1, i].Value + "'" + "," +
-        //            "'" + dataGrid[2, i].Value + "'" + "," +
-        //            dataGrid[3, i].Value + "," +
-        //            dataGrid[4, i].Value + ");";
-        //        MySqlCommand cmd1 = new MySqlCommand(data, con);
-        //        int res1 = cmd1.ExecuteNonQuery();
-        //    }
-        //    con.Close();
-        //}
+                using (MySqlConnection connection = connect())
+                {
+                    string query = @"
+                INSERT INTO data_table (
+                    sa, ss, ea, es,
+                    hs, heada, heads,
+                    hyo, hpo, overall
+                ) VALUES (
+                    @ShoulderTiltAngle, @ShoulderState, @EyeTiltAngle, '@EyeState',
+                    '@HunchbackState', @HeadTiltAngle, '@HeadTiltState',
+                    '@HeadYawDirection', '@HeadPitchDirection', '@OverallPostureStatus'
+                );";
 
-        //public void MySqlOp()
-        //{
-        //    string conStr = "Server=localhost;Database=MyData;User=root;Password=@Ab123456YJC;";
-        //    MySqlConnection conn = new MySqlConnection(conStr);
-        //    MySqlCommand cmd = null;
-        //    try
-        //    {
-        //        conn.Open();
-        //        cmd = conn.CreateCommand();
-        //        cmd.CommandText = "SELECT * FROM user_table";
-        //        MySqlDataReader reader = cmd.ExecuteReader();
-        //        while (reader.Read())
-        //        {
-        //            Console.WriteLine(reader["id"] + " " + reader["name"]);
-        //        }
-        //    }
-        //    catch (Exception ex)
-        //    {
-        //        Console.WriteLine(ex.Message);
-        //    }
-        //    finally
-        //    {
-        //        if (cmd != null)
-        //            cmd.Dispose();
-        //        if (conn != null)
-        //            conn.Close();
-        //    }
-        //}
+                    MySqlCommand command = new MySqlCommand(query, connection);
+
+                    // 添加参数
+                    command.Parameters.AddWithValue("@ShoulderTiltAngle",result.ShoulderTiltAngle.HasValue ? (object)result.ShoulderTiltAngle.Value : DBNull.Value);
+                    command.Parameters.AddWithValue("@EyeTiltAngle",result.EyeTiltAngle.HasValue ? (object)result.EyeTiltAngle.Value : DBNull.Value);
+                    command.Parameters.AddWithValue("@HeadTiltAngle",result.HeadTiltAngle.HasValue ? (object)result.HeadTiltAngle.Value : DBNull.Value);
+
+                    // 枚举类型转VARCHAR
+                    command.Parameters.AddWithValue("@ShoulderState", result.ShoulderState.ToString());
+                    command.Parameters.AddWithValue("@EyeState", result.EyeState.ToString());
+                    command.Parameters.AddWithValue("@HunchbackState", result.HunchbackState.ToString());
+                    command.Parameters.AddWithValue("@HeadTiltState", result.HeadTiltState.ToString());
+                    command.Parameters.AddWithValue("@HeadYawDirection", result.HeadYawDirection.ToString());
+                    command.Parameters.AddWithValue("@HeadPitchDirection", result.HeadPitchDirection.ToString());
+                    command.Parameters.AddWithValue("@OverallPostureStatus", result.OverallPostureStatus.ToString());
+
+                    // DateTime转TIMESTAMP
+                    //command.Parameters.AddWithValue("@Timestamp", result.Timestamp);
+                    //command.Parameters.AddWithValue("@Timestamp", result.Timestamp);
+
+                    int rowsAffected = command.ExecuteNonQuery();
+                    if (rowsAffected == 0)
+                    {
+                        throw new Exception("数据库写入失败，影响行数为0");
+                    }
+                }
+            }
+            catch (InvalidOperationException ex)
+            {
+                // 专门处理数据校验异常
+                MessageBox.Show($"数据校验失败：{ex.Message}", "错误",
+                    MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                throw; // 向上抛出异常供调用方处理
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"数据库操作异常：{ex.Message}\n\n堆栈跟踪：{ex.StackTrace}",
+                    "严重错误", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                throw; // 向上抛出异常
+            }
+            finally
+            {
+                Dataclose(); // 确保连接关闭
+            }
+        }
     }
 }
 //}
