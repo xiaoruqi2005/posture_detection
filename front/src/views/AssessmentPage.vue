@@ -422,6 +422,9 @@ onUnmounted(() => {
                     <p class="card-value small-angle">
                         {{ currentDataToDisplay.headTiltAngle?.toFixed(1) ?? 'N/A' }}°
                     </p>
+                    <p v-if="headTiltDuration > 0" class="duration-display">
+                        持续时间: {{ headTiltDuration }}秒
+                    </p>
                     <p class="card-state">{{ headTiltStateText(currentDataToDisplay.headTiltState) }}</p>
                     <p class="card-interpretation">
                         {{ getHeadTiltInterpretation(currentDataToDisplay.headTiltState) }}
@@ -433,6 +436,9 @@ onUnmounted(() => {
                     <h3 class="card-title">双肩水平</h3>
                     <p class="card-value small-angle">
                         {{ currentDataToDisplay.shoulderTiltAngle?.toFixed(1) ?? 'N/A' }}°
+                    </p>
+                    <p v-if="shoulderDuration > 0" class="duration-display">
+                        持续时间: {{ shoulderDuration }}秒
                     </p>
                     <p class="card-state">{{ shoulderStateText(currentDataToDisplay.shoulderState) }}</p>
                     <p class="card-interpretation">
@@ -509,6 +515,53 @@ onUnmounted(() => {
                 <button @click="closeWarningDialog" class="confirm-button">我已调整姿势</button>
             </div>
         </div>
+        <!-- 头部倾斜警告弹窗 -->
+        <div v-if="showHeadTiltWarning" class="warning-dialog-overlay">
+            <div class="warning-dialog">
+                <h3>⚠️ 长期头部倾斜警告</h3>
+                <div class="warning-content">
+                    <p>您的头部已保持<strong>{{ headTiltStateText(currentDataToDisplay?.headTiltState) }}</strong>状态超过30秒！</p>
+                    <p>长时间保持头部倾斜可能导致：</p>
+                    <ul>
+                        <li>颈椎压力增加</li>
+                        <li>颈部肌肉紧张</li>
+                        <li>头痛和不适</li>
+                    </ul>
+                    <p class="suggestion-title">建议立即：</p>
+                    <ol class="suggestion-steps">
+                        <li>将头部回到正中位置</li>
+                        <li>放松颈部肌肉</li>
+                        <li>做缓慢的颈部伸展运动</li>
+                        <li>调整显示器高度与视线平齐</li>
+                    </ol>
+                </div>
+                <button @click="closeHeadTiltWarning" class="confirm-button">我已调整姿势</button>
+            </div>
+        </div>
+
+        <!-- 高低肩警告弹窗 -->
+        <div v-if="showShoulderWarning" class="warning-dialog-overlay">
+            <div class="warning-dialog">
+                <h3>⚠️ 长期高低肩警告</h3>
+                <div class="warning-content">
+                    <p>您已保持<strong>{{ shoulderStateText(currentDataToDisplay?.shoulderState) }}</strong>状态超过30秒！</p>
+                    <p>长时间保持高低肩可能导致：</p>
+                    <ul>
+                        <li>肩颈肌肉不平衡</li>
+                        <li>脊椎侧弯风险</li>
+                        <li>肩部疼痛和僵硬</li>
+                    </ul>
+                    <p class="suggestion-title">建议立即：</p>
+                    <ol class="suggestion-steps">
+                        <li>放松双肩，让它们自然下垂</li>
+                        <li>有意识地降低较高的肩膀</li>
+                        <li>做肩部环绕运动</li>
+                        <li>检查工作台高度是否合适</li>
+                    </ol>
+                </div>
+                <button @click="closeShoulderWarning" class="confirm-button">我已调整姿势</button>
+            </div>
+        </div>
     </div>
 </template>
 
@@ -538,7 +591,7 @@ onUnmounted(() => {
     const notificationSettings = ref({
         enabled: true,
         sound: true,
-        interval: 5 // 分钟
+        interval: 1 // 分钟
     });
 
     // 驼背计时相关
@@ -547,6 +600,17 @@ onUnmounted(() => {
     const hunchbackDuration = ref(0);
     const showHunchbackWarning = ref(false);
     const lastWarningTime = ref(0);
+
+    // Add these new refs for head and shoulder timers
+    const headTiltTimer = ref(null);
+    const headTiltStartTime = ref(0);
+    const headTiltDuration = ref(0);
+    const showHeadTiltWarning = ref(false);
+
+    const shoulderTimer = ref(null);
+    const shoulderStartTime = ref(0);
+    const shoulderDuration = ref(0);
+    const showShoulderWarning = ref(false);
 
     const connectionStatus = ref({ type: 'info', message: '未连接' });
 
@@ -562,10 +626,11 @@ onUnmounted(() => {
         realtimeData.value = data;
         lastKnownData.value = data;
 
-        // 处理驼背状态计时逻辑
+        // Handle all timing logic
         handleHunchbackTiming(data.hunchbackState);
+        handleHeadTiltTiming(data.headTiltState);
+        handleShoulderTiming(data.shoulderState);
     };
-
 
     const handleConnectionStatus = (isConnected, message) => {
         connectionStatus.value = {
@@ -594,6 +659,22 @@ onUnmounted(() => {
         }
     }
 
+    // async function stopAssessment() {
+    //     if (!isAssessing.value) return;
+    //     isLoading.value = true;
+    //     isStarting.value = false;
+    //     try {
+    //         await postureApi.stop();
+    //         isAssessing.value = false;
+    //         realtimeData.value = null;
+    //     } catch (error) {
+    //         connectionStatus.value = { type: 'error', message: '停止评估失败: ' + (error.response?.data?.message || error.message) };
+    //     } finally {
+    //         isLoading.value = false;
+    //     }
+    // }
+
+    // Modify stopAssessment to reset all timers
     async function stopAssessment() {
         if (!isAssessing.value) return;
         isLoading.value = true;
@@ -602,6 +683,11 @@ onUnmounted(() => {
             await postureApi.stop();
             isAssessing.value = false;
             realtimeData.value = null;
+
+            // Reset all timers when assessment stops
+            resetHunchbackTimer();
+            resetHeadTiltTimer();
+            resetShoulderTimer();
         } catch (error) {
             connectionStatus.value = { type: 'error', message: '停止评估失败: ' + (error.response?.data?.message || error.message) };
         } finally {
@@ -634,8 +720,10 @@ onUnmounted(() => {
         switch (state) {
             case 'Unknown': return '未知';
             case 'Level': return '水平';
-            case 'LeftSlightlyHigh': return '左肩偏高';
-            case 'RightSlightlyHigh': return '右肩偏高';
+            case 'LeftSlightlyHigh': return '左肩轻微偏高';
+            case 'RightSlightlyHigh': return '右肩轻微偏高';
+            case 'LeftObviouslyHigh': return '左肩明显偏高';
+            case 'RightObviouslyHigh': return '右肩明显偏高';
             default: return state;
         }
     };
@@ -812,6 +900,119 @@ onUnmounted(() => {
         showHunchbackWarning.value = false;
     };
 
+    // Add new timer functions for head tilt
+    const handleHeadTiltTiming = (currentState) => {
+        const isBadHeadTilt = currentState === 'SlightlyTiltedLeft' ||
+            currentState === 'SignificantlyTiltedLeft' ||
+            currentState === 'SlightlyTiltedRight' ||
+            currentState === 'SignificantlyTiltedRight';
+
+        if (isBadHeadTilt && !headTiltTimer.value) {
+            startHeadTiltTimer();
+        } else if (!isBadHeadTilt && headTiltTimer.value) {
+            resetHeadTiltTimer();
+        }
+
+        if (headTiltTimer.value) {
+            headTiltDuration.value = Math.floor((Date.now() - headTiltStartTime.value) / 1000);
+
+            if (headTiltDuration.value >= 30 && !showHeadTiltWarning.value) {
+                triggerHeadTiltWarning();
+            }
+        }
+    };
+
+    const startHeadTiltTimer = () => {
+        headTiltStartTime.value = Date.now();
+        headTiltDuration.value = 0;
+        showHeadTiltWarning.value = false;
+
+        headTiltTimer.value = setInterval(() => {
+            headTiltDuration.value = Math.floor((Date.now() - headTiltStartTime.value) / 1000);
+
+            if (headTiltDuration.value >= 30 && !showHeadTiltWarning.value) {
+                triggerHeadTiltWarning();
+            }
+        }, 1000);
+    };
+
+    const resetHeadTiltTimer = () => {
+        if (headTiltTimer.value) {
+            clearInterval(headTiltTimer.value);
+            headTiltTimer.value = null;
+        }
+        headTiltDuration.value = 0;
+        showHeadTiltWarning.value = false;
+    };
+
+    const triggerHeadTiltWarning = () => {
+        showHeadTiltWarning.value = true;
+
+        if (Notification.permission === 'granted') {
+            showNotification('头部姿态警告', '您的头部已保持倾斜姿势超过30秒，请立即调整！');
+        }
+    };
+
+    const closeHeadTiltWarning = () => {
+        showHeadTiltWarning.value = false;
+    };
+
+
+    // Add new timer functions for shoulder tilt
+    const handleShoulderTiming = (currentState) => {
+        const isBadShoulder = currentState === 'LeftSlightlyHigh' || currentState === 'RightSlightlyHigh' || currentState === 'LeftObviouslyHigh' || currentState === 'RightObviouslyHigh';
+
+        if (isBadShoulder && !shoulderTimer.value) {
+            startShoulderTimer();
+        } else if (!isBadShoulder && shoulderTimer.value) {
+            resetShoulderTimer();
+        }
+
+        if (shoulderTimer.value) {
+            shoulderDuration.value = Math.floor((Date.now() - shoulderStartTime.value) / 1000);
+
+            if (shoulderDuration.value >= 30 && !showShoulderWarning.value) {
+                triggerShoulderWarning();
+            }
+        }
+    };
+
+    const startShoulderTimer = () => {
+        shoulderStartTime.value = Date.now();
+        shoulderDuration.value = 0;
+        showShoulderWarning.value = false;
+
+        shoulderTimer.value = setInterval(() => {
+            shoulderDuration.value = Math.floor((Date.now() - shoulderStartTime.value) / 1000);
+
+            if (shoulderDuration.value >= 30 && !showShoulderWarning.value) {
+                triggerShoulderWarning();
+            }
+        }, 1000);
+    };
+
+    const resetShoulderTimer = () => {
+        if (shoulderTimer.value) {
+            clearInterval(shoulderTimer.value);
+            shoulderTimer.value = null;
+        }
+        shoulderDuration.value = 0;
+        showShoulderWarning.value = false;
+    };
+
+    const triggerShoulderWarning = () => {
+        showShoulderWarning.value = true;
+
+        if (Notification.permission === 'granted') {
+            showNotification('高低肩警告', '您已保持高低肩姿势超过30秒，请立即调整！');
+        }
+    };
+
+    const closeShoulderWarning = () => {
+        showShoulderWarning.value = false;
+    };
+
+
 
 
     onMounted(() => {
@@ -840,9 +1041,16 @@ onUnmounted(() => {
         }
     });
 
-    // 组件卸载时清理
+    // // 组件卸载时清理
+    // onBeforeUnmount(() => {
+    //     resetHunchbackTimer();
+    // });
+
+    // Add cleanup for new timers in onBeforeUnmount
     onBeforeUnmount(() => {
         resetHunchbackTimer();
+        resetHeadTiltTimer();
+        resetShoulderTimer();
     });
 
     onUnmounted(() => {
@@ -1248,5 +1456,78 @@ onUnmounted(() => {
     /* 深度选择器示例（如需修改子组件样式） */
     ::v-deep .some-child-element {
         margin: 0;
+    }
+
+    /* Add these new styles for warning dialogs */
+    .warning-dialog-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background-color: rgba(0, 0, 0, 0.5);
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        z-index: 1000;
+    }
+
+    .warning-dialog {
+        background-color: white;
+        border-radius: 12px;
+        padding: 25px;
+        max-width: 500px;
+        width: 90%;
+        box-shadow: 0 5px 20px rgba(0, 0, 0, 0.2);
+    }
+
+        .warning-dialog h3 {
+            color: #d32f2f;
+            margin-top: 0;
+            text-align: center;
+        }
+
+    .warning-content {
+        margin-bottom: 20px;
+    }
+
+        .warning-content p {
+            margin: 10px 0;
+        }
+
+    .suggestion-title {
+        font-weight: bold;
+        margin-top: 15px;
+    }
+
+    .suggestion-steps {
+        padding-left: 20px;
+    }
+
+        .suggestion-steps li {
+            margin-bottom: 8px;
+        }
+
+    .confirm-button {
+        background-color: #4285f4;
+        color: white;
+        border: none;
+        padding: 10px 20px;
+        border-radius: 5px;
+        cursor: pointer;
+        font-size: 1em;
+        display: block;
+        margin: 20px auto 0;
+        transition: background-color 0.3s;
+    }
+
+        .confirm-button:hover {
+            background-color: #3367d6;
+        }
+
+    .duration-display {
+        font-size: 0.9em;
+        color: #666;
+        margin: 5px 0;
     }
 </style>
