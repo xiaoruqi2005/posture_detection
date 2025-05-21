@@ -8,6 +8,7 @@ using Microsoft.Extensions.Logging;
 using System.Net.Http.Headers;
 using System.Text;
 using System.Text.Json;
+using WebAccess.Respoository;
 
 namespace WebAccess.Service
 {
@@ -19,6 +20,7 @@ namespace WebAccess.Service
         private readonly object _lock = new object();
         private  readonly ILogger<PostureDetectionService> _logger;
         private static readonly object _posenalyzerLock = new object();
+        private readonly PostureAnalysisRepository _repository ; // = new PostureAnalysisRepository();
         static void  MyStart()
         {
             Posenalyzer ana = new Posenalyzer();
@@ -27,16 +29,16 @@ namespace WebAccess.Service
 
         // 简单的内存历史数据存储 (课设适用)
         private static readonly ConcurrentQueue<PostureData> _history = new ConcurrentQueue<PostureData>();
-        private const int MaxHistorySize = 2000; // 最多保存20条
+        private const int MaxHistorySize = 2000; // 最多保存2000条
 
      
-        public PostureDetectionService(IHubContext<PostureHub> hubContext, ILogger<PostureDetectionService> logger
-                                       /*, YourNamespace.Analysis.Analysis analyzer,
-                                       YourNamespace.Camera.Client cameraClient */)
+        public PostureDetectionService(IHubContext<PostureHub> hubContext, ILogger<PostureDetectionService> logger, 
+            PostureAnalysisRepository repository)
         {
+            _repository = repository ?? throw new ArgumentNullException(nameof(repository));
             _hubContext = hubContext;
             _logger = logger;
-           MyStart();
+            MyStart();
             _logger.LogInformation("PostureDetectionService Initialized.");
         }
 
@@ -79,8 +81,11 @@ namespace WebAccess.Service
                     //postureData.DetectedIssues = Posenalyzer.result.DetectedIssues;
                     // --- 模拟结束 ---
 
-                    Console.WriteLine(postureData.ShoulderState);
-                    // 保存到历史记录 (简单实现)
+                    // 将数据送到数据库 
+                    _ = _repository.AddAnalysisdataAsync(postureData);
+
+                    //Console.WriteLine(postureData.ShoulderState);
+                    // 保存到历史记录 (简单实现) 暂时不需要，只需要存到数据库
                     _history.Enqueue(postureData);
                     while (_history.Count > MaxHistorySize)
                     {
@@ -129,15 +134,23 @@ namespace WebAccess.Service
 
             // 获取历史数据并发送给大模型
             // 这里还需要通过数据库获取历史数据并发送给大模型
-
-
+            List<PostureData> postureDatas = await _repository.GetAllValidAnalysisdataAsync();
+            String datas = "";
+            if (postureDatas != null)
+            {
+                var options = new JsonSerializerOptions
+                {
+                    WriteIndented = true, 
+                };
+                datas = JsonSerializer.Serialize(postureDatas, options);
+            }
             var queryObject = new
             {
                 model = "qwen-plus",
                 messages = new[]
     {
             new { role = "system", content ="\"你是一位数据驱动的体态分析师。我将为你提供包含时间戳、头部倾斜（角度和状态）、双肩倾斜（角度和状态）、驼背状态等关键指标的历史体态数据记录。\r\n你的职责是：\r\n*   **数据解读**：精确解读这些数据，识别出异常值、持续性偏差以及潜在的模式。\r\n*   **量化评估**：尽可能基于数据中的数值进行评估，例如，指出平均倾斜度、偏差频率等。\r\n*   **问题诊断**：明确指出数据反映的核心体态问题。\r\n*   **定制化方案**：基于诊断结果，提出有针对性的、可执行的调整方案，包括但不限于特定拉伸动作、力量训练、坐姿/站姿提醒等。\r\n你的分析和建议必须严格依据所给数据。\"" }, // 在这里直接使用 request.Prompt
-            new { role = "user", content =  prompt }
+            new { role = "user", content =  prompt + datas }
         }
             };
 

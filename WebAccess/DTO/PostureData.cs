@@ -75,7 +75,11 @@ namespace WebAccess.DTO
         public DateTime Timestamp { get; set; } = DateTime.UtcNow;
       
         public float? ShoulderTiltAngle { get; set; }
-        
+
+        public float? EyeTiltAngle { get; set; }      // 双眼连线与水平线的夹角 (度)
+        [JsonConverter(typeof(JsonStringEnumConverter))]
+        public TiltSeverity EyeState { get; set; }  //基于阈值的眼睛水平度状态
+
         // 肩膀连线与水平线的夹角 (度)
         [JsonConverter(typeof(JsonStringEnumConverter))]
         public Constants.TiltSeverity ShoulderState { get; set; }

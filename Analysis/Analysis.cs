@@ -67,7 +67,7 @@ namespace Analysis
 
         private void PoseClient_ImageFrameReceived(object? sender, System.Drawing.Bitmap e)
         {
-            result.FrameData = e;
+        //    result.FrameData = e;
         }
 
         public async Task StartAsync()

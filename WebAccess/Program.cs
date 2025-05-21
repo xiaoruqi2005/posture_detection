@@ -1,6 +1,9 @@
 
 using WebAccess.Hubs;
 using WebAccess.Service;
+//using WebAccess.Respository
+using Microsoft.Extensions.Configuration;
+using WebAccess.Respoository;
 // using YourNamespace.Analysis; // 如果 Analysis 是外部库
 // using YourNamespace.Camera;   // 如果 Camera.Client 是外部库
 
@@ -12,10 +15,14 @@ builder.Services.AddSignalR();
 
 // 注册核心服务为单例
 builder.Services.AddSingleton<PostureDetectionService>();
-// 如果你的 Analysis 和 Camera.Client 是独立的类，并且需要注入:
-// builder.Services.AddSingleton<Analysis>();
-// builder.Services.AddSingleton<Client>();
 
+ builder.Services.AddSingleton<PostureAnalysisRepository>();
+/*string connectionString = builder.Configuration.GetConnectionString("MyDatabaseConnection")
+                          ?? throw new InvalidOperationException("Connection string 'MyDatabaseConnection' not found in appsettings.json.");
+
+builder.Services.AddScoped<PostureAnalysisRepository>(provider => // 构造函数接收 string connectionString
+    new PostureAnalysisRepository(connectionString));
+*/
 
 // (重要) 配置 CORS，允许前端开发服务器访问
 var frontendDevServerUrl = "http://localhost:5173"; // 你的 Vue/Vite 开发服务器地址

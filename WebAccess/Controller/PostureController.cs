@@ -5,6 +5,8 @@ using Common;
 using System.Net.Http.Headers;
 using System.Text;
 using System.Text.Json;
+using WebAccess.Respoository;
+using ZstdSharp.Unsafe;
 
 namespace WebTest.Controllers
 {
@@ -13,9 +15,11 @@ namespace WebTest.Controllers
     public class PostureController : ControllerBase
     {
         private readonly PostureDetectionService _postureService;
+        private readonly PostureAnalysisRepository _repository;
 
-        public PostureController(PostureDetectionService postureService)
+        public PostureController(PostureDetectionService postureService, PostureAnalysisRepository repository)
         {
+            _repository = repository;
             InitializeMockData();
             _postureService = postureService;
         }
@@ -24,7 +28,13 @@ namespace WebTest.Controllers
         private static bool _dataInitialized = false;
         private static readonly Random _random = new Random();
 
-        private static void InitializeMockData()
+
+        private  async Task InitializeMockData() // 修改为异步方法 从而加快效率并且解决报错问题
+        {
+                _mockPostureHistory = await _repository.GetAllValidAnalysisdataAsync();
+                _mockPostureHistory = _mockPostureHistory.OrderBy(p => p.Timestamp).ToList(); // 按时间排序
+        }
+        private  void InitializeMockData_test()
         {
             if (_dataInitialized) return;
 

@@ -14,7 +14,7 @@ namespace Analysis
     public class AnalysisResult
     {
         //图形回传的暂存对象
-        public Bitmap FrameData = new Bitmap(DrawHeight, DrawWidth);
+      //  public Bitmap FrameData = new Bitmap(DrawHeight, DrawWidth);
 
         public DateTime Timestamp { get; set; }
         // 1. 双肩水平度分析
@@ -40,7 +40,7 @@ namespace Analysis
 
         //5 . 综合评估
         public OverallPosture OverallPostureStatus { get; set; } //0"姿势标准", "轻微不良", "严重不良，请调整"
-        public List<String> DetectedIssues { get; private set; } // 存储所有检测到的问题描述
+        //public List<String> DetectedIssues { get; private set; } // 存储所有检测到的问题描述
 
         public bool IsValidForAnalysis()
         {
