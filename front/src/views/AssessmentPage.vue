@@ -470,7 +470,7 @@ onUnmounted(() => {
         </section>
 
         <!-- 通知设置面板 -->
-        <section class="notification-settings">
+        <!-- <section class="notification-settings">
             <h2 class="section-title">通知设置</h2>
             <div class="settings-options">
                 <label class="setting-option">
@@ -486,6 +486,28 @@ onUnmounted(() => {
                     <input type="number" v-model.number="notificationSettings.interval" min="1" max="60">
                 </label>
             </div>
+        </section> -->
+        <section class="notification-settings">
+            <h2 class="section-title">通知设置</h2>
+            <div class="settings-options">
+                <label class="setting-option">
+                    <input type="checkbox" v-model="notificationSettings.enabled">
+                    启用不良体态通知
+                </label>
+                <label class="setting-option" v-if="notificationSettings.enabled">
+                    <input type="checkbox" v-model="notificationSettings.sound">
+                    启用通知声音
+                </label>
+                <label class="setting-option" v-if="notificationSettings.enabled">
+                    通知间隔(分钟):
+                    <input type="number" v-model.number="notificationSettings.interval" min="1" max="60">
+                </label>
+                <!-- 新增触发时间阈值设置 -->
+                <label class="setting-option" v-if="notificationSettings.enabled">
+                    触发警告阈值(秒):
+                    <input type="number" v-model.number="notificationSettings.detectionThreshold" min="5" max="300">
+                </label>
+            </div>
         </section>
 
         <div class="navigation-footer">
@@ -497,7 +519,7 @@ onUnmounted(() => {
             <div class="warning-dialog">
                 <h3>⚠️ 长期驼背警告</h3>
                 <div class="warning-content">
-                    <p>您已保持<strong>{{ hunchbackStateText(currentDataToDisplay?.hunchbackState) }}</strong>状态超过30秒！</p>
+                    <p>您已保持<strong>{{ hunchbackStateText(currentDataToDisplay?.hunchbackState) }}</strong>状态超过{{ notificationSettings.detectionThreshold }}秒！</p>
                     <p>长时间保持不良姿势可能导致：</p>
                     <ul>
                         <li>颈椎和脊椎损伤</li>
@@ -520,7 +542,7 @@ onUnmounted(() => {
             <div class="warning-dialog">
                 <h3>⚠️ 长期头部倾斜警告</h3>
                 <div class="warning-content">
-                    <p>您的头部已保持<strong>{{ headTiltStateText(currentDataToDisplay?.headTiltState) }}</strong>状态超过30秒！</p>
+                    <p>您的头部已保持<strong>{{ headTiltStateText(currentDataToDisplay?.headTiltState) }}</strong>状态超过{{ notificationSettings.detectionThreshold }}秒！</p>
                     <p>长时间保持头部倾斜可能导致：</p>
                     <ul>
                         <li>颈椎压力增加</li>
@@ -544,7 +566,7 @@ onUnmounted(() => {
             <div class="warning-dialog">
                 <h3>⚠️ 长期高低肩警告</h3>
                 <div class="warning-content">
-                    <p>您已保持<strong>{{ shoulderStateText(currentDataToDisplay?.shoulderState) }}</strong>状态超过30秒！</p>
+                    <p>您已保持<strong>{{ shoulderStateText(currentDataToDisplay?.shoulderState) }}</strong>状态超过{{ notificationSettings.detectionThreshold }}秒！</p>
                     <p>长时间保持高低肩可能导致：</p>
                     <ul>
                         <li>肩颈肌肉不平衡</li>
@@ -584,15 +606,16 @@ onUnmounted(() => {
     const realtimeData = ref(null);
     const lastKnownData = ref(null);
 
-
     // 通知相关状态
     const showPermissionBanner = ref(false);
     const notificationStatus = ref(null);
     const notificationSettings = ref({
         enabled: true,
         sound: true,
-        interval: 1 // 分钟
+        interval: 1, // 分钟
+        detectionThreshold: 30 // 秒（新增）
     });
+
 
     // 驼背计时相关
     const hunchbackTimer = ref(null);
@@ -853,8 +876,8 @@ onUnmounted(() => {
         if (hunchbackTimer.value) {
             hunchbackDuration.value = Math.floor((Date.now() - hunchbackStartTime.value) / 1000);
 
-            // 检查是否达到30秒
-            if (hunchbackDuration.value >= 30 && !showHunchbackWarning.value) {
+            // 使用动态阈值
+            if (hunchbackDuration.value >= notificationSettings.value.detectionThreshold && !showHunchbackWarning.value) {
                 triggerHunchbackWarning();
             }
         }
@@ -869,7 +892,7 @@ onUnmounted(() => {
         hunchbackTimer.value = setInterval(() => {
             hunchbackDuration.value = Math.floor((Date.now() - hunchbackStartTime.value) / 1000);
 
-            if (hunchbackDuration.value >= 30 && !showHunchbackWarning.value) {
+            if (hunchbackDuration.value >= notificationSettings.value.detectionThreshold && !showHunchbackWarning.value) {
                 triggerHunchbackWarning();
             }
         }, 1000);
@@ -891,7 +914,7 @@ onUnmounted(() => {
 
         // 发送通知
         if (Notification.permission === 'granted') {
-            showNotification('长期驼背警告', '您已保持不良姿势超过30秒，请立即调整坐姿！');
+            showNotification('长期驼背警告', `您已保持驼背姿势过久，请立即调整坐姿！`);
         }
     };
 
@@ -916,7 +939,7 @@ onUnmounted(() => {
         if (headTiltTimer.value) {
             headTiltDuration.value = Math.floor((Date.now() - headTiltStartTime.value) / 1000);
 
-            if (headTiltDuration.value >= 30 && !showHeadTiltWarning.value) {
+            if (headTiltDuration.value >= notificationSettings.value.detectionThreshold && !showHeadTiltWarning.value) {
                 triggerHeadTiltWarning();
             }
         }
@@ -930,7 +953,7 @@ onUnmounted(() => {
         headTiltTimer.value = setInterval(() => {
             headTiltDuration.value = Math.floor((Date.now() - headTiltStartTime.value) / 1000);
 
-            if (headTiltDuration.value >= 30 && !showHeadTiltWarning.value) {
+            if (headTiltDuration.value >= notificationSettings.value.detectionThreshold && !showHeadTiltWarning.value) {
                 triggerHeadTiltWarning();
             }
         }, 1000);
@@ -949,7 +972,7 @@ onUnmounted(() => {
         showHeadTiltWarning.value = true;
 
         if (Notification.permission === 'granted') {
-            showNotification('头部姿态警告', '您的头部已保持倾斜姿势超过30秒，请立即调整！');
+            showNotification('头部姿态警告', `您的头部已保持倾斜姿势过久，请立即调整！`);
         }
     };
 
@@ -971,7 +994,7 @@ onUnmounted(() => {
         if (shoulderTimer.value) {
             shoulderDuration.value = Math.floor((Date.now() - shoulderStartTime.value) / 1000);
 
-            if (shoulderDuration.value >= 30 && !showShoulderWarning.value) {
+            if (shoulderDuration.value >= notificationSettings.value.detectionThreshold && !showShoulderWarning.value) {
                 triggerShoulderWarning();
             }
         }
@@ -985,7 +1008,7 @@ onUnmounted(() => {
         shoulderTimer.value = setInterval(() => {
             shoulderDuration.value = Math.floor((Date.now() - shoulderStartTime.value) / 1000);
 
-            if (shoulderDuration.value >= 30 && !showShoulderWarning.value) {
+            if (shoulderDuration.value >= notificationSettings.value.detectionThreshold && !showShoulderWarning.value) {
                 triggerShoulderWarning();
             }
         }, 1000);
@@ -1004,7 +1027,7 @@ onUnmounted(() => {
         showShoulderWarning.value = true;
 
         if (Notification.permission === 'granted') {
-            showNotification('高低肩警告', '您已保持高低肩姿势超过30秒，请立即调整！');
+            showNotification('高低肩警告', `您已保持高低肩姿势过久，请立即调整！`);
         }
     };
 
