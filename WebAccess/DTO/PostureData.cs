@@ -1,5 +1,6 @@
 ﻿using System.Text.Json.Serialization;
 using Common;
+using static Common.Constants;
 namespace WebAccess.DTO
 {
     public class PostureData
@@ -87,6 +88,17 @@ namespace WebAccess.DTO
         public float? HeadTiltAngle { get; set; } // 头部中轴线与垂直线的夹角 (度)
         [JsonConverter(typeof(JsonStringEnumConverter))]
         public Constants.HeadTiltSeverity HeadTiltState { get; set; } // 头部倾斜状态
+
+        [JsonConverter(typeof(JsonStringEnumConverter))]
+        public HeadOrientationHorizontal HeadYawDirection { get; set; }// = HeadOrientationHorizontal.Unknown;
+
+        [JsonConverter(typeof(JsonStringEnumConverter))]
+        public HeadOrientationVertical HeadPitchDirection { get; set; }// = HeadOrientationVertical.Unknown;
+
+        //5 . 综合评估
+        [JsonConverter(typeof(JsonStringEnumConverter))]
+        public OverallPosture OverallPostureStatus { get; set; } //0"姿势标准", "轻微不良", "严重不良，请调整"
+
     }
 
     public class LLMQueryRequest

@@ -4,6 +4,7 @@ using WebAccess.DTO;
 using WebAccess.Hubs;
 using Analysis;
 using System.Collections.Concurrent;
+using Microsoft.Extensions.Logging;
 using System.Net.Http.Headers;
 using System.Text;
 using System.Text.Json;
@@ -16,11 +17,8 @@ namespace WebAccess.Service
         private Timer? _detectionTimer;
         private bool _isDetecting = false;
         private readonly object _lock = new object();
-
-        /*static {
-         Posenalyzer ana = new Posenalyzer();
-       // new Thread(() => { ana.StartAsync(); }).Start();
-        }*/
+        private  readonly ILogger<PostureDetectionService> _logger;
+        private static readonly object _posenalyzerLock = new object();
         static void  MyStart()
         {
             Posenalyzer ana = new Posenalyzer();
@@ -29,21 +27,17 @@ namespace WebAccess.Service
 
         // 简单的内存历史数据存储 (课设适用)
         private static readonly ConcurrentQueue<PostureData> _history = new ConcurrentQueue<PostureData>();
-        private const int MaxHistorySize = 20; // 最多保存20条
+        private const int MaxHistorySize = 2000; // 最多保存20条
 
-        // 注入你自己的 Analysis 和 Camera.Client 服务
-        // private readonly YourNamespace.Analysis.Analysis _analyzer;
-        // private readonly YourNamespace.Camera.Client _cameraClient;
      
-        public PostureDetectionService(IHubContext<PostureHub> hubContext
+        public PostureDetectionService(IHubContext<PostureHub> hubContext, ILogger<PostureDetectionService> logger
                                        /*, YourNamespace.Analysis.Analysis analyzer,
                                        YourNamespace.Camera.Client cameraClient */)
         {
             _hubContext = hubContext;
-            // _analyzer = analyzer;
-            // _cameraClient = cameraClient;
-            MyStart();
-            Console.WriteLine("PostureDetectionService Initialized.");
+            _logger = logger;
+           MyStart();
+            _logger.LogInformation("PostureDetectionService Initialized.");
         }
 
         public void StartDetection()
@@ -54,39 +48,59 @@ namespace WebAccess.Service
                 _isDetecting = true;
             }
             Console.WriteLine("Starting posture detection simulation...");
-
-            _detectionTimer = new Timer(async (_) =>
+            _detectionTimer?.Dispose(); 
+            _detectionTimer = new Timer(async (state) =>
             {
-                if (!_isDetecting) return;
-
-                // --- 模拟获取和分析数据 ---
-                // 替换为你实际的逻辑:
-                // 1. landmarks = await _cameraClient.GetLandmarksAsync();
-                // 2. analysisResult = _analyzer.PerformAnalysis(landmarks);
-                // 3. postureData = MapToPostureData(analysisResult);
-                
-                PostureData postureData =new PostureData();
-                postureData.Timestamp = Posenalyzer.result.Timestamp;
-                postureData.ShoulderTiltAngle = Posenalyzer.result.ShoulderTiltAngle;
-                postureData.ShoulderState = Posenalyzer.result.ShoulderState;
-                postureData.HeadTiltAngle = Posenalyzer.result.HeadTiltAngle;
-                postureData.HeadTiltState = Posenalyzer.result.HeadTiltState;
-                postureData.HunchbackState = Posenalyzer.result.HunchbackState;
-                // --- 模拟结束 ---
-
-                Console.WriteLine(postureData.ShoulderState);
-                // 保存到历史记录 (简单实现)
-                _history.Enqueue(postureData);
-                while (_history.Count > MaxHistorySize)
+                var service = (PostureDetectionService)state;
+                if (service!=null && !service._isDetecting)
                 {
-                    //_history.TryDequeue(out _);
+                    service._logger.LogTrace("Detection stopped, timer tick skipped.");
+                    return;
+                }
+                if (!_isDetecting) return;
+                try
+                {
+                    // --- 模拟获取和分析数据 ---
+                    // 替换为你实际的逻辑:
+                    // 1. landmarks = await _cameraClient.GetLandmarksAsync();
+                    // 2. analysisResult = _analyzer.PerformAnalysis(landmarks);
+                    // 3. postureData = MapToPostureData(analysisResult);
 
+                    PostureData postureData = new PostureData();
+                    postureData.Timestamp = Posenalyzer.result.Timestamp;
+                    postureData.ShoulderTiltAngle = Posenalyzer.result.ShoulderTiltAngle;
+                    postureData.ShoulderState = Posenalyzer.result.ShoulderState;
+                    postureData.HeadTiltAngle = Posenalyzer.result.HeadTiltAngle;
+                    postureData.HeadTiltState = Posenalyzer.result.HeadTiltState;
+                    postureData.HunchbackState = Posenalyzer.result.HunchbackState;
+                    postureData.HeadPitchDirection = Posenalyzer.result.HeadPitchDirection;
+                    postureData.OverallPostureStatus = Posenalyzer.result.OverallPostureStatus;
+                    postureData.HeadYawDirection = Posenalyzer.result.HeadYawDirection;
+                    //postureData.DetectedIssues = Posenalyzer.result.DetectedIssues;
+                    // --- 模拟结束 ---
+
+                    Console.WriteLine(postureData.ShoulderState);
+                    // 保存到历史记录 (简单实现)
+                    _history.Enqueue(postureData);
+                    while (_history.Count > MaxHistorySize)
+                    {
+                        //_history.TryDequeue(out _);
+
+                    }
+
+                    // 通过 SignalR 推送数据
+                    await _hubContext.Clients.All.SendAsync("ReceivePostureData", postureData);
+                    service._logger.LogTrace("[Timer Tick] Data sent via SignalR.");
+                }
+                catch (Exception ex)
+                {
+                    // 非常重要：捕获并记录 Timer 回调中的所有异常
+                    service._logger.LogError(ex, "[Timer Tick Error] Exception in posture detection timer callback.");
+                    // 根据错误类型，你可能想在这里停止检测
+                    // service.StopDetection(); // 例如，如果错误是不可恢复的
                 }
 
-                // 通过 SignalR 推送数据
-                await _hubContext.Clients.All.SendAsync("ReceivePostureData", postureData);
-
-            }, null, TimeSpan.Zero, TimeSpan.FromMilliseconds(1000)); // 每秒推送一次
+            }, this, TimeSpan.Zero, TimeSpan.FromMilliseconds(1000)); // 每秒推送一次
         }
 
         public void StopDetection()
@@ -105,13 +119,16 @@ namespace WebAccess.Service
             // 返回历史记录的副本，按时间倒序
             return _history.OrderByDescending(p => p.Timestamp).Take(limit).ToList();
         }
-
-        private readonly ILogger<PostureDetectionService> _logger; // 将 YourClassName 替换为你的实际类名
+        public void Dispose()
+        {
+            _detectionTimer?.Dispose();
+        }
+      //  private readonly ILogger<PostureDetectionService> _logger; // 将 YourClassName 替换为你的实际类名
         public async Task<string> GetLLMSuggestionAsync(string prompt)
         {
-            // 模拟调用大模型 API
-            // 获取历史数据并发送给大模型
 
+            // 获取历史数据并发送给大模型
+            // 这里还需要通过数据库获取历史数据并发送给大模型
 
 
             var queryObject = new
@@ -187,11 +204,6 @@ namespace WebAccess.Service
             }
 
             return assistantResponseContent;
-        }
-
-        public void Dispose()
-        {
-            _detectionTimer?.Dispose();
         }
 
         private static readonly HttpClient httpClient = new HttpClient();

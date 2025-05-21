@@ -22,7 +22,7 @@ namespace CameraTest
 
             Posenalyzer ana = new Posenalyzer();
             // 最终优化版
-            ana.StartAsync();
+            _ =ana.StartAsync();
             while (true)
             {//Console.WriteLine("程序没有阻塞！"); } 
 
